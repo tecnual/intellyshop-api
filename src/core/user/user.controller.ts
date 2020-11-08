@@ -10,8 +10,6 @@ export class UserController {
     @Post()
     async addUser(@Request() req): Promise<any> {
         const user: UserDocument =  await this.userService.add(req.body);
-
-        console.log('dbres', user);
         return { _id: user._id, username: user.username, email: user.email};
     }
 
