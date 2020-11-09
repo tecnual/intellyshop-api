@@ -13,7 +13,7 @@ export class ItemService {
     return addedItem.save();
   }
 
-  async findAll(): Promise<Item[]> {
-    return this.itemModel.find().exec();
+  async findAll(filter: string): Promise<Item[]> {
+    return this.itemModel.find({name: { "$regex": filter, "$options": "i" }}).exec();
   }
 }

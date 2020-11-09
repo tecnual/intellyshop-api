@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards, Query} from '@nestjs/common';
 import { Item } from './item.schema';
 import { ItemService } from './item.service';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
@@ -16,7 +16,8 @@ export class ItemController {
     }
 
     @Get()
-    async getItems(): Promise<Item[]> {
-        return this.itemService.findAll();
+    async getItems(@Query('filter') filter: string): Promise<Item[]> {
+        console.log('filter', filter);
+        return this.itemService.findAll(filter);
     }
 }
