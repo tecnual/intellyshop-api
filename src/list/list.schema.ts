@@ -17,7 +17,16 @@ export class List {
   owner: {type: ListOwner};
 
   @Prop()
-  items: ListItem[];
+  store: {
+    type: sch.Types.ObjectId,
+    ref: 'Store'
+  };
+
+  @Prop()
+  listItems: ListItem[];
+
+  @Prop()
+  cartItems: ListItem[];
 
 }
 
@@ -40,19 +49,19 @@ export class ListOwner {
 @Schema()
 export class ListItem {
   @Prop()
-  quantity: number;
+  quantity?: number;
 
   @Prop()
-  price: number;
+  price?: number;
 
   @Prop()
-  currency: string;
+  currency?: string;
 
   @Prop()
-  name: string;
+  name?: string;
 
   @Prop()
-  itemId: {
+  _id: {
     type: sch.Types.ObjectId,
     ref: 'Item'
   };

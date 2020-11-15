@@ -1,10 +1,9 @@
-import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { AddListDto } from './dto/add-list.dto';
 import { List } from './list.schema';
 import { ListService } from './list.service';
-//import { Request } from '@nestjs/common';
 import { Request } from 'express';
 
 @UseGuards(JwtAuthGuard)
@@ -13,7 +12,7 @@ export class ListController {
     constructor(private readonly listService: ListService) {}
 
     @Post()
-    async addList(@Req() req: Request, @Body() body: AddListDto): Promise<List> {      
+    async addList(@Req() req: Request, @Body() body: AddListDto): Promise<List> {
         return this.listService.add(body, req.user);
     }
 
@@ -22,8 +21,27 @@ export class ListController {
         return this.listService.getUserLists(req.user);
     }
 
-    @Put(':listId/item/')
+    @Patch('/:listId/item/') // TODO: pasar el itemId el los parametros de la url
     addItemToList(@Param('listId') listId: string, @Req() req): Observable<any> { // TODO: cambiar Req por body
         return this.listService.addItemToList(listId, req.body);
     }
+
+    @Patch('/:listId/cart/item/') // TODO: pasar el itemId el los parametros de la url
+    addItemToListCart(@Param('listId') listId: string, @Req() req): Observable<any> { // TODO: cambiar Req por body
+        return this.listService.addItemToListCart(listId, req.body);
+    }
+
+    @Delete('/:listId/item/:listItemId')
+    removeItemFromList(@Param('listId') listId: string, @Param('listItemId') listItemId: string) {
+        console.log('removeItemFromList', listId, listItemId);
+        return this.listService.removeItemFromList(listId, listItemId);
+    }
+
+    @Delete('/:listId/cart/item/:cartItemId')
+    removeItemFromCartList(@Param('listId') listId: string, @Param('cartItemId') cartItemId: string) {
+        console.log('removeItemFromListCart', listId, cartItemId);
+        return this.listService.removeItemFromListCart(listId, cartItemId);
+    }
+
+
 }

@@ -14,6 +14,7 @@ export class ItemService {
   }
 
   async findAll(filter: string): Promise<Item[]> {
-    return this.itemModel.find({name: { "$regex": filter, "$options": "i" }}).exec();
+    const query = filter || filter === ''? {name: { "$regex": filter, "$options": "i" }} : null
+    return this.itemModel.find(query).exec();
   }
 }
