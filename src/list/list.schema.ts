@@ -1,9 +1,33 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as sch } from 'mongoose';
+import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import { Document, Schema as sch, Types } from 'mongoose';
 
 export type ListOwnerDocument = ListOwner & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
+
+@Schema()
+export class ListItem {
+  @Prop()
+  _id: Types.ObjectId;
+
+  @Prop()
+  quantity?: number;
+
+  @Prop()
+  price?: number;
+
+  @Prop()
+  currency?: string;
+
+  @Prop()
+  name?: string;
+
+  @Prop()
+  itemId: {
+    type: sch.Types.ObjectId,
+    ref: 'Item'
+  };
+}
 
 @Schema()
 export class List {
@@ -17,7 +41,7 @@ export class List {
   owner: {type: ListOwner};
 
   @Prop()
-  store: {
+  store?: {
     type: sch.Types.ObjectId,
     ref: 'Store'
   };
@@ -45,27 +69,5 @@ export class ListOwner {
     ref: 'User'
   };
 }
-
-@Schema()
-export class ListItem {
-  @Prop()
-  quantity?: number;
-
-  @Prop()
-  price?: number;
-
-  @Prop()
-  currency?: string;
-
-  @Prop()
-  name?: string;
-
-  @Prop()
-  _id: {
-    type: sch.Types.ObjectId,
-    ref: 'Item'
-  };
-}
-
 
 export const ListSchema = SchemaFactory.createForClass(List);

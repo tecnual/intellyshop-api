@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { AddListDto } from './dto/add-list.dto';
@@ -43,5 +43,13 @@ export class ListController {
         return this.listService.removeItemFromListCart(listId, cartItemId);
     }
 
+    @Put('/:listId/list/item/:listItemId')
+    updateListItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any) {
+      return this.listService.updateItemFromList(listId, listItemId, body, 'list');
+    }
 
+    @Put('/:listId/cart/item/:listItemId')
+    updateCartItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any) {
+      return this.listService.updateItemFromList(listId, listItemId, body, 'cart');
+    }
 }
