@@ -6,9 +6,10 @@ import { MongoProviderModule } from './providers/database/mongo/provider.module'
 import { ListModule } from './list/list.module';
 import { ItemModule } from './item/item.module';
 import { StoreModule } from './store/store.module';
+import { PurchaseModule } from './purchase/purchase.module';
 
 @Module({
-  imports: [CoreModule, ListModule, MongoProviderModule, ItemModule, StoreModule],
+  imports: [CoreModule, ListModule, MongoProviderModule, ItemModule, StoreModule, PurchaseModule],
   controllers: [AppController],
   providers: [AppService],
 })

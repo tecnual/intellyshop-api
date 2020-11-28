@@ -60,4 +60,12 @@ export class ListService {
     query[`${type}Items._id`] =  new Types.ObjectId(listItemId);
     return this.listModel.updateOne(query, { $set: setUpdate});
   }
+
+  public async removeListItems(listId: string) {
+    return this.listModel.updateOne({_id: listId}, { $set: {listItems: [] }});
+  }
+
+  public async removeCartItems(listId: string) {
+    return this.listModel.updateOne({_id: listId}, { $set: {cartItems: [] }});
+  }
 }

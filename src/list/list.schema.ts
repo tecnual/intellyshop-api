@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import { Document, Schema as sch, Types } from 'mongoose';
 
-export type ListOwnerDocument = ListOwner & Document;
+export type ListOwnerDocument = Owner & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
 
@@ -38,7 +38,7 @@ export class List {
   description: string;
 
   @Prop()
-  owner: {type: ListOwner};
+  owner: {type: Owner};
 
   @Prop()
   store?: {
@@ -56,7 +56,7 @@ export class List {
 
 
 @Schema()
-export class ListOwner {
+export class Owner {
   @Prop()
   name: string;
 

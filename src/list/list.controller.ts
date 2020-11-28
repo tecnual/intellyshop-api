@@ -33,8 +33,19 @@ export class ListController {
 
     @Delete('/:listId/item/:listItemId')
     removeItemFromList(@Param('listId') listId: string, @Param('listItemId') listItemId: string) {
-        console.log('removeItemFromList', listId, listItemId);
         return this.listService.removeItemFromList(listId, listItemId);
+    }
+
+    @Delete('/:listId/list')
+    removeListItems(@Param('listId') listId: string) {
+        console.log('removeListItems', listId);
+        return this.listService.removeListItems(listId);
+    }
+
+    @Delete('/:listId/cart')
+    removeCartItems(@Param('listId') listId: string) {
+        console.log('removeCartItems', listId);
+        return this.listService.removeCartItems(listId);
     }
 
     @Delete('/:listId/cart/item/:cartItemId')
