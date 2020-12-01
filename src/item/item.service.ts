@@ -17,4 +17,8 @@ export class ItemService {
     const query = filter || filter === ''? {name: { "$regex": filter, "$options": "i" }} : null
     return this.itemModel.find(query).exec();
   }
+
+  async patchItem(itemId: string, item: Item): Promise<Item> {
+    return this.itemModel.updateOne({_id: itemId}, {$set: {price: item.price, name: item.name}});
+  }
 }

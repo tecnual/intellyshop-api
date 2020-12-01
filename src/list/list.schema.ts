@@ -5,7 +5,9 @@ export type ListOwnerDocument = Owner & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
 
-@Schema()
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true }
+})
 export class ListItem {
   @Prop()
   _id: Types.ObjectId;
@@ -29,7 +31,9 @@ export class ListItem {
   };
 }
 
-@Schema()
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true }
+})
 export class List {
   @Prop()
   name: string;
@@ -53,7 +57,6 @@ export class List {
   cartItems: ListItem[];
 
 }
-
 
 @Schema()
 export class Owner {
