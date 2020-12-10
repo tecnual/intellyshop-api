@@ -12,13 +12,14 @@ export class ItemController {
 
     @Post()
     async addItem(@Req() req: Request): Promise<Item> {
-        console.log(req.body);
-        return this.itemService.add({name: req.body.name, description: req.body.description});
+        console.log('--', req.body);
+        return this.itemService.add(req.body);
     }
 
     @Get()
-    async getItems(@Query('filter') filter: string): Promise<Item[]> {
-        return this.itemService.findAll(filter);
+    async getItems(@Query('name') name: string, @Query('barcode') barcode: string): Promise<Item[] | Item> {
+        if (barcode) return this.itemService.findOneByBarcode(barcode);
+        return this.itemService.findAllByName(name);
     }
 
     @Patch('/:itemId')

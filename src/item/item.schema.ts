@@ -12,10 +12,16 @@ export class Item {
   @Prop()
   name: string;
 
-  @Prop()
-  description: string;
+  @Prop({unique: true})
+  barcode?: string;
 
   @Prop()
+  openFoodFactsProduct: any;
+
+  @Prop()
+  description?: string;
+
+  @Prop({default: true})
   public:  boolean;
 
   @Prop()
@@ -24,7 +30,7 @@ export class Item {
   @Prop()
   updatedBy: Owner[];
 
-  @Prop()
+  @Prop({default: 0})
   price: number;
 
 }
