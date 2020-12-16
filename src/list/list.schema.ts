@@ -1,9 +1,48 @@
 import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import { Document, Schema as sch, Types } from 'mongoose';
+import { Document, Schema as Sch, Types } from 'mongoose';
 
-export type ListOwnerDocument = Owner & Document;
+export type ListUserDocument = ListUser & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
+
+
+@Schema()
+export class ListUser {
+  @Prop()
+  name: string;
+
+  @Prop()
+  email: string;
+
+  @Prop({ type: Sch.Types.ObjectId, ref: 'User' })
+  _id;
+}
+
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true }
+})
+export class List {
+  @Prop({unique: true})
+  name: string;
+
+  @Prop()
+  description: string;
+
+  @Prop({type: ListUser})
+  owner;
+
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Store'})
+  store?;
+
+  @Prop()
+  listItems: ListItem[];
+
+  @Prop()
+  cartItems: ListItem[];
+
+  @Prop()
+  sharedUsers?: ListUser[];
+}
 
 @Schema({
   timestamps: { createdAt: true, updatedAt: true }
@@ -24,53 +63,9 @@ export class ListItem {
   @Prop()
   name?: string;
 
-  @Prop()
-  itemId: {
-    type: sch.Types.ObjectId,
-    ref: 'Item'
-  };
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Item' })
+  itemId;
 }
 
-@Schema({
-  timestamps: { createdAt: true, updatedAt: true }
-})
-export class List {
-  @Prop()
-  name: string;
-
-  @Prop()
-  description: string;
-
-  @Prop()
-  owner: {type: Owner};
-
-  @Prop()
-  store?: {
-    type: sch.Types.ObjectId,
-    ref: 'Store'
-  };
-
-  @Prop()
-  listItems: ListItem[];
-
-  @Prop()
-  cartItems: ListItem[];
-
-}
-
-@Schema()
-export class Owner {
-  @Prop()
-  name: string;
-
-  @Prop()
-  email: string;
-
-  @Prop()
-  _id: {
-    type: sch.Types.ObjectId,
-    ref: 'User'
-  };
-}
 
 export const ListSchema = SchemaFactory.createForClass(List);

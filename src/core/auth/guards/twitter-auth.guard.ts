@@ -14,16 +14,11 @@ export class TwitterAuthGuard extends AuthGuard('twitter') {
   }
 
   canActivate(context: ExecutionContext) {
-    // console.log('canactivate: ', context);
     this.roles = this.reflector.get<string[]>('roles', context.getHandler());
     return super.canActivate(context);
   }
 
   handleRequest(err, user, info) {
-    console.log('err: ', err);
-    console.log('user: ', user);
-    console.log('info: ', info);
-
     if (err || !user) {
       throw err || new UnauthorizedException(info);
     }

@@ -3,19 +3,19 @@ import { InjectModel} from '@nestjs/mongoose';
 import { Model, Types} from 'mongoose';
 import { from, Observable } from 'rxjs';
 import { AddListDto } from './dto/add-list.dto';
-import { List, ListDocument, ListItem, ListItemDocument } from './list.schema';
+import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
 
-import * as mongoose from 'mongoose';
+import { Schema as Sch } from 'mongoose';
 
 @Injectable()
 export class ListService {
   constructor(@InjectModel(List.name) private readonly listModel: Model<ListDocument>) {}
 
-  async add(addListDto: AddListDto, user: any): Promise<List> {
+  async upsert(addListDto: AddListDto, user: any): Promise<any> {
     addListDto.owner = user;
     const addedList = new this.listModel(addListDto);
 
-    return addedList.save();
+    return this.listModel.findOneAndUpdate( {_id: addedList._id} , addedList , {new: true, upsert: true}).exec();
   }
 
   async getUserLists(user): Promise<List[]> {
@@ -54,8 +54,6 @@ export class ListService {
     listItem.quantity? setUpdate[type + 'Items.$.quantity'] = Number(listItem.quantity): null;
     listItem.price? setUpdate[type + 'Items.$.price'] = Number(listItem.price): null;
 
-    console.log('setUpdate', setUpdate)
-
     const query = {_id: listId}
     query[`${type}Items._id`] =  new Types.ObjectId(listItemId);
     return this.listModel.updateOne(query, { $set: setUpdate});
@@ -68,4 +66,16 @@ export class ListService {
   public async removeCartItems(listId: string) {
     return this.listModel.updateOne({_id: listId}, { $set: {cartItems: [] }});
   }
+
+  public async deleteList(listId: string) {
+    return this.listModel.deleteOne({_id: listId});
+  }
+
+  public addSharedUser(listId: string, user: ListUser): Observable<any> {
+    return from(this.listModel.updateOne(
+      { _id: listId },
+      { $push: { sharedUsers: {$each: [user], $position: 0}} }
+    ));
+  }
+
 }

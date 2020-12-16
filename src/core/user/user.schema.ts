@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
+
 @Schema()
 export class User {
 
@@ -17,3 +18,4 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.index({ '$**': 'text' });

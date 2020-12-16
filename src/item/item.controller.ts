@@ -12,7 +12,6 @@ export class ItemController {
 
     @Post()
     async addItem(@Req() req: Request): Promise<Item> {
-        console.log('--', req.body);
         return this.itemService.add(req.body);
     }
 
@@ -24,7 +23,6 @@ export class ItemController {
 
     @Patch('/:itemId')
     async patchItem(@Req() req: Request, @Param('itemId') itemId: string,): Promise<Item> {
-        console.log(req.body);
         return this.itemService.patchItem(itemId, req.body);
     }
 

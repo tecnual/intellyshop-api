@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import { Document, Schema as sch, Types } from 'mongoose';
-import { ListItem, Owner } from 'src/list/list.schema';
+import { ListItem, ListUser } from 'src/list/list.schema';
 
 export type PurchaseDocument = Purchase & Document;
 
@@ -9,13 +9,10 @@ export type PurchaseDocument = Purchase & Document;
 })
 export class Purchase {
   @Prop()
-  user?: Owner;
+  user?: ListUser;
 
-  @Prop()
-  list?: {
-    type: sch.Types.ObjectId,
-    ref: 'List'
-  };
+  @Prop({ type: sch.Types.ObjectId, ref: 'List' })
+  list?;
 
   @Prop()
   totalPrice: number;

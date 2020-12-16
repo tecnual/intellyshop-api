@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Owner } from 'src/list/list.schema';
+import { ListUser } from 'src/list/list.schema';
 
 export type ItemDocument = Item & Document;
 
@@ -8,15 +8,14 @@ export type ItemDocument = Item & Document;
   timestamps: { createdAt: true, updatedAt: true }
 })
 export class Item {
-
   @Prop()
   name: string;
 
-  @Prop({unique: true})
+  @Prop()
   barcode?: string;
 
-  @Prop()
-  openFoodFactsProduct: any;
+  @Prop({ type: Object})
+  openFoodFactsProduct;
 
   @Prop()
   description?: string;
@@ -25,14 +24,13 @@ export class Item {
   public:  boolean;
 
   @Prop()
-  createdBy: Owner;
+  createdBy: ListUser;
 
   @Prop()
-  updatedBy: Owner[];
+  updatedBy: ListUser[];
 
   @Prop({default: 0})
   price: number;
-
 }
 
 export const ItemSchema = SchemaFactory.createForClass(Item);
