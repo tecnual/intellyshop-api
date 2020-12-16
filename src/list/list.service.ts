@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel} from '@nestjs/mongoose';
 import { Model, Types} from 'mongoose';
 import { from, Observable } from 'rxjs';
+import { User } from 'src/core/user/user.schema';
 import { AddListDto } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
-
-import { Schema as Sch } from 'mongoose';
 
 @Injectable()
 export class ListService {
@@ -19,7 +18,7 @@ export class ListService {
   }
 
   async getUserLists(user): Promise<List[]> {
-    return this.listModel.find({"owner._id": user._id}).exec();
+    return this.listModel.find({ $or: [{"owner._id": user._id}, {'sharedUsers._id': user._id}]}).exec();
   }
 
   public addItemToList(listId: string, listItem: ListItemDocument): Observable<any> {
