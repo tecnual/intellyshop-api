@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CoreModule } from './core/core.module';
@@ -18,6 +21,12 @@ import { join } from 'path';
     ItemModule,
     StoreModule,
     PurchaseModule,
+    ConfigModule.forRoot({
+        cache: true,
+        isGlobal: true,
+        load: [configuration]
+      }
+    ),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'images'),
       serveRoot: '/v0/images',
