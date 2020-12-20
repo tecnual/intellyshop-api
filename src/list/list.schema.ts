@@ -1,61 +1,70 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as sch } from 'mongoose';
+import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import { Document, Schema as Sch, Types } from 'mongoose';
 
-export type ListOwnerDocument = ListOwner & Document;
+export type ListUserDocument = ListUser & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
 
-@Schema()
-export class List {
-  @Prop()
-  name: string;
-
-  @Prop()
-  description: string;
-
-  @Prop()
-  owner: {type: ListOwner};
-
-  @Prop()
-  items: ListItem[];
-
-}
-
 
 @Schema()
-export class ListOwner {
+export class ListUser {
   @Prop()
   name: string;
 
   @Prop()
   email: string;
 
-  @Prop()
-  _id: {
-    type: sch.Types.ObjectId,
-    ref: 'User'
-  };
+  @Prop({ type: Sch.Types.ObjectId, ref: 'User' })
+  _id;
 }
 
-@Schema()
-export class ListItem {
-  @Prop()
-  quantity: number;
-
-  @Prop()
-  price: number;
-
-  @Prop()
-  currency: string;
-
-  @Prop()
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true }
+})
+export class List {
+  @Prop({unique: true})
   name: string;
 
   @Prop()
-  itemId: {
-    type: sch.Types.ObjectId,
-    ref: 'Item'
-  };
+  description: string;
+
+  @Prop({type: ListUser})
+  owner;
+
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Store'})
+  store?;
+
+  @Prop()
+  listItems: ListItem[];
+
+  @Prop()
+  cartItems: ListItem[];
+
+  @Prop()
+  sharedUsers?: ListUser[];
+}
+
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true }
+})
+export class ListItem {
+  @Prop()
+  _id: Types.ObjectId;
+
+  @Prop()
+  quantity?: number;
+
+  @Prop()
+  price?: number;
+
+  @Prop()
+  currency?: string;
+
+  @Prop()
+  name?: string;
+
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Item' })
+  itemId;
 }
 
 

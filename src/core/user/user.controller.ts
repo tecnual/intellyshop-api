@@ -1,4 +1,4 @@
-import { Controller, Post, Request } from '@nestjs/common';
+import { Controller, Get, Post, Request, Query } from '@nestjs/common';
 import { User, UserDocument } from './user.schema';
 import { UserService } from './user.service';
 
@@ -10,8 +10,11 @@ export class UserController {
     @Post()
     async addUser(@Request() req): Promise<any> {
         const user: UserDocument =  await this.userService.add(req.body);
-        return { _id: user._id, username: user.username, email: user.email};
+        return { _id: user._id, username: user.username, name: user.name, email: user.email};
     }
 
-    
+    @Get()
+    usersList(@Query('filter') filter) {
+      return this.userService.findAll(filter);
+    }
 }

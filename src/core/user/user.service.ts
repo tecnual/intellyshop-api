@@ -13,9 +13,9 @@ export class UserService {
       const addedUser = new this.userModel(addUserDto);
       return addedUser.save();
     }
-  
-    async findAll(): Promise<User[]> {
-      return this.userModel.find().exec();
+
+    async findAll(filter: string): Promise<User[]> {
+      return this.userModel.find({ $text: { $search: filter } }).exec();
     }
 
     async findOne(username: string, password: string): Promise<User> {

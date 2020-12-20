@@ -2,10 +2,12 @@ import { User } from "src/core/user/user.schema";
 import { Item } from "src/item/item.schema";
 
 export class AddListDto {
-  readonly name: string;
-  readonly description?: string;
+  _id?: string;
+  name: string;
+  description?: string;
   owner?: ListOwnerDto;
-  readonly items?: ListItemDto[];
+  listItems?: ListItemDto[];
+  cartItems?: ListItemDto[];
 };
 
 export class ListItemDto {

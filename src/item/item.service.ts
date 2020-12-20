@@ -13,7 +13,16 @@ export class ItemService {
     return addedItem.save();
   }
 
-  async findAll(): Promise<Item[]> {
-    return this.itemModel.find().exec();
+  async findAllByName(filter: string): Promise<Item[]> {
+    const query = filter || filter === ''? {name: { "$regex": filter, "$options": "i" }} : null;
+    return this.itemModel.find(query).exec();
+  }
+
+  async findOneByBarcode(barcode: string): Promise<Item> {
+    return this.itemModel.findOne({barcode}).exec();
+  }
+
+  async patchItem(itemId: string, item: Item): Promise<Item> {
+    return this.itemModel.updateOne({_id: itemId}, {$set: {price: item.price, name: item.name}});
   }
 }
