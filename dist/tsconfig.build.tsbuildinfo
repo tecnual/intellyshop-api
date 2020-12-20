@@ -1247,8 +1247,8 @@
         "affectsGlobalScope": false
       },
       "../src/config/configuration.ts": {
-        "version": "05f7662224609c6ecc69a863aab85362e29566b388088484d29ef2bf5a62266b",
-        "signature": "2f22f2372b3e30786409596d9dc2d76c3422eef591ea39689a746965d8dfc727",
+        "version": "a97d70d47601ac1df0f0f0bd0ca2c54f8f42ea50a7c6f62b2dad1aaabc346bdd",
+        "signature": "468bc6bedf4231d54b1f7df46d36d1ab066d22d895113f06f2ee6640e2117643",
         "affectsGlobalScope": false
       },
       "../node_modules/@nestjs/mongoose/dist/common/mongoose.decorators.d.ts": {
@@ -1817,7 +1817,7 @@
         "affectsGlobalScope": false
       },
       "../src/providers/database/mongo/provider.module.ts": {
-        "version": "f98304f947380310b141443955f81a78402cfd77854ab6ed12a34b87a325b666",
+        "version": "0c506cb902572ca6c89662a2fb078ce62eb64c53630423aece6076502a98d064",
         "signature": "566413a04d763c1fc06bf083d8872416efc1ecc871a6f864dfbd52959ca1cda8",
         "affectsGlobalScope": false
       },
@@ -2132,7 +2132,7 @@
         "affectsGlobalScope": false
       },
       "../src/main.ts": {
-        "version": "084d04a7578350600b529393cb7c060345219947396f64bf8b8cdef26c09ab26",
+        "version": "5d2549354066dbb868154a912d500c5aac62092b5bda2b33cf8f16f2549b00b4",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },

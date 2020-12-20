@@ -47,7 +47,7 @@ MongoProviderModule = __decorate([
                             '?' +
                             configService.get('database.options');
                     }
-                    console.log('dbUrl', dbUrl, process.env.WS_DB_HOST);
+                    console.log('dbUrl: ', dbUrl, process.env.WS_DB_HOST);
                     return ({
                         useCreateIndex: true,
                         autoIndex: true,

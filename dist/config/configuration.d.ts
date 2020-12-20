@@ -1,6 +1,7 @@
 declare const _default: () => {
     port: number;
     versionPrefix: string;
+    corsOrigin: string;
     database: {
         host: string;
         port: number;
