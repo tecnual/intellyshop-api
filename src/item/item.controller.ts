@@ -11,8 +11,8 @@ export class ItemController {
     constructor(private readonly itemService: ItemService) {}
 
     @Post()
-    async addItem(@Req() req: Request): Promise<Item> {
-        return this.itemService.add(req.body);
+    async setItem(@Req() req: Request): Promise<Item> {
+        return this.itemService.setItem(req.body);
     }
 
     @Get()
@@ -22,8 +22,13 @@ export class ItemController {
     }
 
     @Patch('/:itemId')
-    async patchItem(@Req() req: Request, @Param('itemId') itemId: string,): Promise<Item> {
+    async patchItem(@Req() req: Request, @Param('itemId') itemId: string): Promise<Item> {
         return this.itemService.patchItem(itemId, req.body);
+    }
+
+    @Get('/:itemId')
+    async getItemById(@Param('itemId') itemId: string): Promise<Item[] | Item> {
+        return this.itemService.findOneById(itemId);
     }
 
 }

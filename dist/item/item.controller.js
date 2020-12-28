@@ -20,8 +20,8 @@ let ItemController = class ItemController {
     constructor(itemService) {
         this.itemService = itemService;
     }
-    async addItem(req) {
-        return this.itemService.add(req.body);
+    async setItem(req) {
+        return this.itemService.setItem(req.body);
     }
     async getItems(name, barcode) {
         if (barcode)
@@ -31,6 +31,9 @@ let ItemController = class ItemController {
     async patchItem(req, itemId) {
         return this.itemService.patchItem(itemId, req.body);
     }
+    async getItemById(itemId) {
+        return this.itemService.findOneById(itemId);
+    }
 };
 __decorate([
     common_1.Post(),
@@ -38,7 +41,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ItemController.prototype, "addItem", null);
+], ItemController.prototype, "setItem", null);
 __decorate([
     common_1.Get(),
     __param(0, common_1.Query('name')), __param(1, common_1.Query('barcode')),
@@ -53,6 +56,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ItemController.prototype, "patchItem", null);
+__decorate([
+    common_1.Get('/:itemId'),
+    __param(0, common_1.Param('itemId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ItemController.prototype, "getItemById", null);
 ItemController = __decorate([
     common_1.UseGuards(jwt_auth_guard_1.JwtAuthGuard),
     common_1.Controller('item'),

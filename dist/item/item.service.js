@@ -21,9 +21,13 @@ let ItemService = class ItemService {
     constructor(itemModel) {
         this.itemModel = itemModel;
     }
-    async add(addItemDto) {
-        const addedItem = new this.itemModel(addItemDto);
-        return addedItem.save();
+    async setItem(item) {
+        if (!item._id)
+            item._id = new mongoose_2.Types.ObjectId();
+        return this.itemModel.findByIdAndUpdate(item._id, item, { upsert: true, new: true });
+    }
+    async findOneById(itemId) {
+        return this.itemModel.findById(itemId).exec();
     }
     async findAllByName(filter) {
         const query = filter || filter === '' ? { name: { "$regex": filter, "$options": "i" } } : null;

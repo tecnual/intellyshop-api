@@ -36,8 +36,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             '?' +
             configService.get<string>('database.options');
         }
-        console.log('dbUrl: ', dbUrl, process.env.WS_DB_HOST);
-
         return ({
           useCreateIndex: true,
           autoIndex: true,

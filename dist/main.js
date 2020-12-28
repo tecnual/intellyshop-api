@@ -9,7 +9,6 @@ async function bootstrap() {
     const port = configService.get('port');
     const versioPrefix = configService.get('versionPrefix');
     const corsOrigin = configService.get('corsOrigin');
-    console.log('¡Cors', corsOrigin);
     app.enableCors({ origin: corsOrigin });
     app.setGlobalPrefix(versioPrefix);
     await app.listen(port);
