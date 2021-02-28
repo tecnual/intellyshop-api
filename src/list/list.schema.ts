@@ -55,6 +55,9 @@ export class ListItem {
   quantity?: number;
 
   @Prop()
+  barcode?: number;
+
+  @Prop()
   price?: number;
 
   @Prop()

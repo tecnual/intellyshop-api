@@ -13,6 +13,7 @@ export class ItemService {
   }
 
   async findOneById(itemId: string): Promise<Item> {
+
     return this.itemModel.findById(itemId).exec();
   }
 
