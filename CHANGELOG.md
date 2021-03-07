@@ -1,3 +1,9 @@
+### 1.1.0 (2021-03-07)
+
+##### New Features
+
+*  Default response interfaces (113a246c)
+
 #### 1.0.1 (2021-02-28)
 
 ##### Bug Fixes
