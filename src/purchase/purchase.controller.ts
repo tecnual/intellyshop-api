@@ -3,7 +3,7 @@ import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { ListItemDto } from 'src/list/dto/add-list.dto';
 import { PurchaseService } from './purchase.service';
 import { Request } from 'express';
-import { User } from 'src/core/user/user.schema';
+import { DefaultResponse } from 'src/shared/models/default-response.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('purchase')
@@ -14,6 +14,6 @@ export class PurchaseController {
 
   @Post()
   async addPurchase(@Req() req: Request, @Body() body: ListItemDto[]): Promise<any> {
-    return this.purchaseService.add(req.user, body);
+    return new DefaultResponse<any>(this.purchaseService.add(req.user, body));
   }
 }

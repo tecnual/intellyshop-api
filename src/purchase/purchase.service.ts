@@ -8,13 +8,14 @@ export class PurchaseService {
   constructor(
     @InjectModel(Purchase.name) private readonly purchaseModel: Model<PurchaseDocument>
   ) {}
-  public add(user: any, data: any) {
+  public add(user: any, data: any): Promise<Purchase> {
     const addPurchase: Purchase = new Purchase();
     addPurchase.user = user;
     addPurchase.list = data.listId;
     addPurchase.listItems = data.listItems;
     addPurchase.totalPrice = data.totalPrice;
     addPurchase.totalQuantity = data.totalQuantity;
+    addPurchase.ticket = data.ticket;
 
     const purchaseAdded = new this.purchaseModel(addPurchase);
 

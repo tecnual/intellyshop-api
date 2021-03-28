@@ -5,6 +5,9 @@ import { AddListDto } from './dto/add-list.dto';
 import { List, ListUser } from './list.schema';
 import { ListService } from './list.service';
 import { Request } from 'express';
+import { DefaultResponse } from 'src/shared/models/default-response.interface';
+import { ModifyListRequest } from 'src/model/rest/modify-list.request';
+import { ErrorResponse } from 'src/shared/models/error-response.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('list')
@@ -19,6 +22,28 @@ export class ListController {
     @Get()
     async getUserLists(@Req() req: Request): Promise<List[]> {
         return this.listService.getUserLists(req.user);
+    }
+
+    /**
+     * Delete List
+     * @param listId List Identifier
+     * @returns db result
+     */
+    @Delete('/:listId')
+    deleteList(@Param('listId') listId: string) {
+      return this.listService.deleteList(listId);
+    }
+
+    /**
+     * modifyList
+     */
+     @Patch('/:listId')
+     public modifyList(@Body() body: ModifyListRequest): DefaultResponse<any> { // TODO: poner el tipo correcto
+
+      if (body.saved) {
+        console.log('duplicate list');
+      }
+      return new DefaultResponse<string>('ok');
     }
 
     @Patch('/:listId/item/') // TODO: pasar el itemId en los parametros de la url
@@ -61,13 +86,25 @@ export class ListController {
       return this.listService.updateItemFromList(listId, listItemId, body, 'cart');
     }
 
-    @Delete('/:listId')
-    deleteList(@Param('listId') listId: string) {
-      return this.listService.deleteList(listId);
-    }
-
     @Put('/:listId/share-user') // TODO: pasar el itemId en los parametros de la url
     addSharedUser(@Param('listId') listId: string, @Body() user: any): Observable<ListUser> { // TODO: cambiar Req por body
       return this.listService.addSharedUser(listId, user);
+    }
+
+    /**
+     * addImageTolist
+     */
+    @Post('/:listId/image')
+    public async addImageTolist(@Param('listId') listId: string,@Body() body: any): Promise<DefaultResponse<any>> {
+      try {
+        if (true) {}
+        const data = await this.listService.addImageToList(listId, body.image);
+        console.log('data', data);
+        return new DefaultResponse<List>(data);
+      } catch (e) {
+        console.log('Error', e);
+        return new DefaultResponse<ErrorResponse>(e);
+      }
+      return null;
     }
 }
