@@ -100,7 +100,7 @@ export class ListController {
         if (true) {}
         const data = await this.listService.addImageToList(listId, body.image);
         console.log('data', data);
-        return new DefaultResponse<any>(data);
+        return new DefaultResponse<List>(data);
       } catch (e) {
         console.log('Error', e);
         return new DefaultResponse<ErrorResponse>(e);

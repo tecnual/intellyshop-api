@@ -83,7 +83,7 @@ export class ListService {
    * @param image
    * @returns DB response
    */
-  public addImageToList(listId:string, image: string): Query<any, ListDocument> {
+  public addImageToList(listId:string, image: string): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate(
       { _id: listId },
       { $push: { images: image } },
