@@ -1,3 +1,9 @@
+### 1.2.0 (2021-03-28)
+
+##### New Features
+
+*  Save images on list (3a7eb608)
+
 ### 1.1.0 (2021-03-07)
 
 ##### New Features
