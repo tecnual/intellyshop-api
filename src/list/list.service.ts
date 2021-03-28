@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel} from '@nestjs/mongoose';
-import { Model, Types} from 'mongoose';
+import { Model, Query, Types} from 'mongoose';
 import { from, Observable } from 'rxjs';
 import { User } from 'src/core/user/user.schema';
 import { AddListDto } from './dto/add-list.dto';
@@ -77,4 +77,17 @@ export class ListService {
     ));
   }
 
+  /**
+   * Add an image to list
+   * @param listId
+   * @param image
+   * @returns DB response
+   */
+  public addImageToList(listId:string, image: string): Query<any, ListDocument> {
+    return this.listModel.findByIdAndUpdate(
+      { _id: listId },
+      { $push: { images: image } },
+      { 'new': true }
+    );
+  }
 }
