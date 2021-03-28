@@ -31,6 +31,9 @@ export class List {
   @Prop({type: ListUser})
   owner;
 
+  @Prop({type: Boolean, default: false})
+  saved;
+
   @Prop({ type: Sch.Types.ObjectId, ref: 'Store'})
   store?;
 
@@ -42,6 +45,9 @@ export class List {
 
   @Prop()
   sharedUsers?: ListUser[];
+
+  @Prop()
+  images?: string[];
 }
 
 @Schema({
