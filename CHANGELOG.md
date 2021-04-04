@@ -1,21 +1,3 @@
-#### 1.2.3 (2021-04-04)
-
-##### New Features
-
-*  Save images on list (3a7eb608)
-
-#### 1.2.2 (2021-04-04)
-
-##### New Features
-
-*  Save images on list (3a7eb608)
-
-#### 1.2.1 (2021-04-04)
-
-##### New Features
-
-*  Save images on list (3a7eb608)
-
 ### 1.2.0 (2021-03-28)
 
 ##### New Features
