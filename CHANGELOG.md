@@ -1,3 +1,10 @@
+### 1.3.0 (2021-04-04)
+
+##### New Features
+
+*  Clusterize service (e3607a92)
+*  Save images on list (3a7eb608)
+
 ### 1.2.0 (2021-03-28)
 
 ##### New Features
