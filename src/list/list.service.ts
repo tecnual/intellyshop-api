@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel} from '@nestjs/mongoose';
 import { Model, Query, Types} from 'mongoose';
 import { from, Observable } from 'rxjs';
-import { User } from 'src/core/user/user.schema';
 import { AddListDto } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
 
