@@ -5,7 +5,6 @@ export type ListUserDocument = ListUser & Document;
 export type ListItemDocument = ListItem & Document;
 export type ListDocument = List & Document;
 
-
 @Schema()
 export class ListUser {
   @Prop()
@@ -22,7 +21,7 @@ export class ListUser {
   timestamps: { createdAt: true, updatedAt: true }
 })
 export class List {
-  @Prop({unique: true})
+  @Prop()
   name: string;
 
   @Prop()
@@ -76,5 +75,5 @@ export class ListItem {
   itemId;
 }
 
-
 export const ListSchema = SchemaFactory.createForClass(List);
+
