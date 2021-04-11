@@ -1,5 +1,6 @@
 import { User } from "src/core/user/user.schema";
 import { Item } from "src/item/item.schema";
+import { ListUser } from "../list.schema";
 
 export class AddListDto {
   _id?: string;
@@ -8,6 +9,9 @@ export class AddListDto {
   owner?: ListOwnerDto;
   listItems?: ListItemDto[];
   cartItems?: ListItemDto[];
+  sharedUsers?: ListUser[];
+  totals?: any;
+  store?: any;
 };
 
 export class ListItemDto {

@@ -9,18 +9,18 @@ import { MongoProviderModule } from './providers/database/mongo/provider.module'
 import { ListModule } from './list/list.module';
 import { ItemModule } from './item/item.module';
 import { StoreModule } from './store/store.module';
-import { PurchaseModule } from './purchase/purchase.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { SavedListModule } from './list/saved-list/saved-list.module';
 
 @Module({
   imports: [
     CoreModule,
     ListModule,
+    SavedListModule,
     MongoProviderModule,
     ItemModule,
     StoreModule,
-    PurchaseModule,
     ConfigModule.forRoot({
         cache: true,
         isGlobal: true,
