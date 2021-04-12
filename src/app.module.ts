@@ -12,6 +12,7 @@ import { StoreModule } from './store/store.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { SavedListModule } from './list/saved-list/saved-list.module';
+import { FinanceModule } from './routes/finance/finance.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SavedListModule } from './list/saved-list/saved-list.module';
       serveRoot: '/v0/images',
 
     }),
+    FinanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -53,7 +53,7 @@ export class ListController {
         response = new DefaultResponse<any>({listModified, newList: await this.listService.upsert(newList, listModified.owner)});
       }
     } catch(e) {
-      console.log('error', e);
+      console.error('error', e);
       const errors: ErrorResponse[] = [{ code: '1', message: 'Error: ' + e }]
       return new DefaultResponse<any>(null, errors);
     } finally {
@@ -113,7 +113,6 @@ export class ListController {
   public async addImageTolist(@Param('listId') listId: string, @Body() body: any): Promise<DefaultResponse<any>> {
     try {
       const data = await this.listService.addImageToList(listId, body.image);
-      console.log('data', data);
       return new DefaultResponse<List>(data);
     } catch (e) {
       return new DefaultResponse<ErrorResponse>(e);

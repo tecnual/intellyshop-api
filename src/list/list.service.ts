@@ -111,6 +111,4 @@ export class ListService {
   public modifyList(listId: string, fields: any): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate({ _id: listId }, fields, { new: true });
   }
-
-
 }
