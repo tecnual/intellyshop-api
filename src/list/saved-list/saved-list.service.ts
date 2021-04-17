@@ -9,10 +9,22 @@ export class SavedListService {
 
   constructor(
     @InjectModel(SavedList.name) private readonly savedListModel: Model<SavedListDocument>
-    ) {}
+  ) { }
 
-    public saveList(list: AddListDto) {
-      const savedList = new this.savedListModel(list);
-      return savedList.save();
-    }
+  /**
+   * Save list
+   * @param list
+   * @returns
+   */
+  public saveList(list: AddListDto): Promise<SavedListDocument> {
+    const savedList = new this.savedListModel(list);
+    return savedList.save();
+  }
+
+  /**
+  * Get lists
+  */
+  public getLists(options: any, filter: any): Promise<SavedListDocument[]> { // TODO: tipear
+    return this.savedListModel.find(filter, options).sort('createdAt').exec();
+  }
 }

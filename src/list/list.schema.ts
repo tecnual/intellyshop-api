@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import { Document, Schema as Sch, Types } from 'mongoose';
+import { Model, Document, Schema as Sch, Types, model } from 'mongoose';
+import { AuthService } from 'src/core/auth/auth.service';
 
 export type ListUserDocument = ListUser & Document;
 export type ListItemDocument = ListItem & Document;
@@ -27,6 +28,9 @@ export class List {
   @Prop()
   description: string;
 
+  @Prop({type: Boolean, default: true})
+  income: boolean;
+
   @Prop({type: ListUser})
   owner;
 
@@ -47,6 +51,7 @@ export class List {
 
   @Prop()
   images?: string[];
+
 }
 
 @Schema({
@@ -75,5 +80,24 @@ export class ListItem {
   itemId;
 }
 
-export const ListSchema = SchemaFactory.createForClass(List);
+
+
+ export const ListSchema = SchemaFactory.createForClass(List);
+
+ export const ListSchemaProvider = {
+  name: List.name,
+  useFactory: () => {
+    ListSchema.pre('find', preQuery);
+    ListSchema.pre('updateOne', preQuery);
+
+    return ListSchema;
+  }
+ };
+  const preQuery = function() {
+    const query = this.getQuery();
+    const ownerId = query['owner._id'];
+    delete query['owner._id'];
+    query['$or'] = [{'owner._id': ownerId} , { 'sharedUsers._id': ownerId}]
+    this.setQuery(query);
+  }
 
