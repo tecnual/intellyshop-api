@@ -24,7 +24,7 @@ export class SavedListService {
   /**
   * Get lists
   */
-  public getLists(options: any): Promise<SavedListDocument[]> { // TODO: tipear
-    return this.savedListModel.find({}, options).sort('createdAt').exec();
+  public getLists(options: any, filter: any): Promise<SavedListDocument[]> { // TODO: tipear
+    return this.savedListModel.find(filter, options).sort('createdAt').exec();
   }
 }
