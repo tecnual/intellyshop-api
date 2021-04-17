@@ -1,3 +1,13 @@
+### 1.7.0 (2021-04-17)
+
+##### New Features
+
+*  user verification (1de7a535)
+*  finance data (1a21da5d)
+*  Save lists (a2d89d72)
+*  Clusterize service (e3607a92)
+*  Save images on list (3a7eb608)
+
 ### 1.4.0 (2021-04-11)
 
 ##### New Features

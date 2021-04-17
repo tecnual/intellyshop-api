@@ -20,7 +20,7 @@ export class ListController {
 
   @Get()
   async getUserLists(@Req() req: Request): Promise<List[]> {
-    return this.listService.getUserLists(req.user);
+    return this.listService.getUserLists(req.user as ListUser);
   }
 
   /**
@@ -29,8 +29,8 @@ export class ListController {
    * @returns db result
    */
   @Delete('/:listId')
-  deleteList(@Param('listId') listId: string) {
-    return this.listService.deleteList(listId);
+  deleteList(@Param('listId') listId: string, @Req() req: Request) {
+    return this.listService.deleteList(listId, req.user as ListUser);
   }
 
   /**
@@ -53,7 +53,7 @@ export class ListController {
         response = new DefaultResponse<any>({listModified, newList: await this.listService.upsert(newList, listModified.owner)});
       }
     } catch(e) {
-      console.log('error', e);
+      console.error('error', e);
       const errors: ErrorResponse[] = [{ code: '1', message: 'Error: ' + e }]
       return new DefaultResponse<any>(null, errors);
     } finally {
@@ -62,18 +62,18 @@ export class ListController {
   }
 
   @Patch('/:listId/item/') // TODO: pasar el itemId en los parametros de la url
-  addItemToList(@Param('listId') listId: string, @Req() req): Observable<any> { // TODO: cambiar Req por body
-    return this.listService.addItemToList(listId, req.body);
+  addItemToList(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
+    return this.listService.addItemToItemsList(listId, req.body, req.user as ListUser);
   }
 
   @Patch('/:listId/cart/item/') // TODO: pasar el itemId en los parametros de la url
-  addItemToListCart(@Param('listId') listId: string, @Req() req): Observable<any> { // TODO: cambiar Req por body
-    return this.listService.addItemToListCart(listId, req.body);
+  addItemToListCart(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
+    return this.listService.addItemToCartList(listId, req.body, req.user as ListUser);
   }
 
   @Delete('/:listId/item/:listItemId')
-  removeItemFromList(@Param('listId') listId: string, @Param('listItemId') listItemId: string) {
-    return this.listService.removeItemFromList(listId, listItemId);
+  removeItemFromList(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Req() req: Request) {
+    return this.listService.removeItemFromList(listId, listItemId, req.user as ListUser);
   }
 
   @Delete('/:listId/list')
@@ -82,28 +82,28 @@ export class ListController {
   }
 
   @Delete('/:listId/cart')
-  removeCartItems(@Param('listId') listId: string) {
-    return this.listService.removeCartItems(listId);
+  removeCartItems(@Param('listId') listId: string, @Req() req: Request) {
+    return this.listService.removeCartItems(listId, req.user as ListUser);
   }
 
   @Delete('/:listId/cart/item/:cartItemId')
-  removeItemFromCartList(@Param('listId') listId: string, @Param('cartItemId') cartItemId: string) {
-    return this.listService.removeItemFromListCart(listId, cartItemId);
+  removeItemFromCartList(@Param('listId') listId: string, @Param('cartItemId') cartItemId: string, @Req() req: Request) {
+    return this.listService.removeItemFromListCart(listId, cartItemId, req.user as ListUser);
   }
 
   @Put('/:listId/list/item/:listItemId')
-  updateListItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any) {
-    return this.listService.updateItemFromList(listId, listItemId, body, 'list');
+  updateListItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any, @Req() req: Request) {
+    return this.listService.updateItemFromList(listId, listItemId, body, 'list', req.user as ListUser);
   }
 
   @Put('/:listId/cart/item/:listItemId')
-  updateCartItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any) {
-    return this.listService.updateItemFromList(listId, listItemId, body, 'cart');
+  updateCartItem(@Param('listId') listId: string, @Param('listItemId') listItemId: string, @Body() body: any, @Req() req: Request) {
+    return this.listService.updateItemFromList(listId, listItemId, body, 'cart', req.user as ListUser);
   }
 
   @Put('/:listId/share-user') // TODO: pasar el itemId en los parametros de la url
-  addSharedUser(@Param('listId') listId: string, @Body() user: any): Observable<ListUser> { // TODO: cambiar Req por body
-    return this.listService.addSharedUser(listId, user);
+  addSharedUser(@Param('listId') listId: string, @Body() sharedUser: any, @Req() req: Request): Observable<ListUser> { // TODO: cambiar Req por body
+    return this.listService.addSharedUser(listId, sharedUser, req.user as ListUser);
   }
 
   /**
@@ -113,7 +113,6 @@ export class ListController {
   public async addImageTolist(@Param('listId') listId: string, @Body() body: any): Promise<DefaultResponse<any>> {
     try {
       const data = await this.listService.addImageToList(listId, body.image);
-      console.log('data', data);
       return new DefaultResponse<List>(data);
     } catch (e) {
       return new DefaultResponse<ErrorResponse>(e);

@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import * as bodyParser from 'body-parser';
 import { AppClusterService } from './app-cluster.service';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,7 @@ async function bootstrap() {
   app.enableCors({ origin: corsOrigin});
 
   app.setGlobalPrefix(versioPrefix);
+  app.useGlobalPipes(new ValidationPipe( {skipMissingProperties: true} ));
   await app.listen(port);
 }
 

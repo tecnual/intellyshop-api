@@ -8,16 +8,16 @@ const numCPUs = os.cpus().length;
 export class AppClusterService {
     static clusterize(callback: () => void): void {
         if(cluster.isMaster){
-            console.log(`Master server started on ${process.pid}`);
+            console.info(`Master server started on ${process.pid}`);
             for (let i = 0; i < numCPUs; i++) {
                 cluster.fork();
             }
             cluster.on('exit', (worker, code, signal) => {
-                console.log(`Worker ${worker.process.pid} died. Code ${code}, signal ${signal}. Restarting...`);
+                console.info(`Worker ${worker.process.pid} died. Code ${code}, signal ${signal}. Restarting...`);
                 cluster.fork();
             })
         } else {
-            console.log(`Cluster server started on ${process.pid}`)
+            console.info(`Cluster server started on ${process.pid}`)
             callback();
         }
     }

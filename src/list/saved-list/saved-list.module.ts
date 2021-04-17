@@ -8,5 +8,6 @@ import { SavedListService } from './saved-list.service';
   imports: [MongooseModule.forFeature([{ name: SavedList.name, schema: SavedListSchema }]), SavedListModule],
   controllers: [SavedListController],
   providers: [SavedListService],
+  exports: []
 })
 export class SavedListModule {}
