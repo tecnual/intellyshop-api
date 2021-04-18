@@ -1,5 +1,9 @@
 #### 1.7.1 (2021-04-18)
 
+##### New Features
+
+*  Get saved lists endpoint (fccfad2c)
+
 ### 1.7.0 (2021-04-17)
 
 ##### New Features
