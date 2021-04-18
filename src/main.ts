@@ -18,7 +18,7 @@ async function bootstrap() {
   app.enableCors({ origin: corsOrigin});
 
   app.setGlobalPrefix(versioPrefix);
-  app.useGlobalPipes(new ValidationPipe( {skipMissingProperties: true} ));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, skipMissingProperties: true }));
   await app.listen(port);
 }
 
