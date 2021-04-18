@@ -1,11 +1,12 @@
-import { Body, Controller, DefaultValuePipe, Get, ParseBoolPipe, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { DefaultResponse } from 'src/shared/models/default-response.interface';
 import { AddListDto } from '../dto/add-list.dto';
+import { ListUser } from '../list.schema';
 import { SavedListDocument } from './saved-list.schema';
 import { SavedListService } from './saved-list.service';
+import { Request } from 'express';
+import { GetListsDto } from './get-lists.dto';
 
 
 @UseGuards(JwtAuthGuard)
@@ -27,17 +28,15 @@ export class SavedListController {
    * getStats
    */
   @Get()
-  public async getLists(@Query('hideFields') hideFields?: string, @Query('income', ParseBoolPipe) income?: boolean): Promise<DefaultResponse<SavedListDocument[]>> {
+  public async getLists(@Req() req: Request, @Query() query?: GetListsDto, @Query('hideFields') hideFields?: string): Promise<DefaultResponse<SavedListDocument[]>> {
     const options = {};
     const filter = {};
-    if (hideFields) {
-      hideFields.includes('images') ? options['images'] = 0: null;
-      hideFields.includes('cartItems') ? options['cartItems'] =  0: null;
-      hideFields.includes('listItems') ? options['listItems'] = 0: null;
+    for (const field of query.hideFields) {
+      options[field] = 0;
     }
-    income ? filter['income'] = income: null;
+    typeof query.isIncome !== 'undefined' ? filter['income'] = query.isIncome: null;
 
-    const response = new DefaultResponse<SavedListDocument[]>(await this.savedListService.getLists(options, filter));
+    const response = new DefaultResponse<SavedListDocument[]>(await this.savedListService.getLists(req.user as ListUser, filter, options));
     return response;
   }
 }
