@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AddListDto } from '../dto/add-list.dto';
+import { ListUser } from '../list.schema';
 import { SavedList, SavedListDocument } from './saved-list.schema';
 
 @Injectable()
@@ -22,9 +23,13 @@ export class SavedListService {
   }
 
   /**
-  * Get lists
-  */
-  public getLists(options: any, filter: any): Promise<SavedListDocument[]> { // TODO: tipear
+   * Get lists
+   * @param user Request user
+   * @param filter search filters
+   * @param options options parameters
+   */
+  public getLists(user: ListUser, filter: any, options: any ): Promise<SavedListDocument[]> { // TODO: tipear
+    filter['owner._id'] = user._id;
     return this.savedListModel.find(filter, options).sort('createdAt').exec();
   }
 }
