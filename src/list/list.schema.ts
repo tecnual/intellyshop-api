@@ -52,6 +52,9 @@ export class List {
   @Prop()
   images?: string[];
 
+  @Prop()
+  tags?: string[];
+
 }
 
 @Schema({
@@ -99,5 +102,6 @@ export class ListItem {
     delete query['owner._id'];
     query['$or'] = [{'owner._id': ownerId} , { 'sharedUsers._id': ownerId}]
     this.setQuery(query);
+    console.log('query', query);
   }
 

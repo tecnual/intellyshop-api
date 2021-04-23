@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Query, Types } from 'mongoose';
 import { from, Observable } from 'rxjs';
-import { User } from 'src/core/user/user.schema';
 import { AddListDto } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
+import { SavedList, SavedListDocument } from './saved-list/saved-list.schema';
 
 @Injectable()
 export class ListService {
   constructor(
-    @InjectModel(List.name) private readonly listModel: Model<ListDocument>
+    @InjectModel(List.name) private readonly listModel: Model<ListDocument>,
+    @InjectModel(SavedList.name) private readonly savedListModel: Model<SavedListDocument>,
   ) { }
 
   async upsert(addListDto: AddListDto, user: any): Promise<any> {
@@ -72,11 +73,26 @@ export class ListService {
     return this.listModel.deleteOne({ _id: listId, 'owner._id': user._id });
   }
 
+  /**
+   * Add shared user to list and saved lists
+   * @param listId
+   * @param sharedUser
+   * @param user
+   * @returns
+   */
   public addSharedUser(listId: string, sharedUser: ListUser, user: ListUser): Observable<any> {
-    return from(this.listModel.updateOne(
+    return from(this.listModel.findOneAndUpdate(
       { _id: listId, 'owner._id': user._id },
-      { $push: { sharedUsers: { $each: [sharedUser], $position: 0 } } }
-    ));
+      { $push: { sharedUsers: { $each: [sharedUser], $position: 0 } } }, {new: true}
+    ).then(res => {
+        // add user to saved lists
+        this.savedListModel.updateMany(
+          { listId },
+          { sharedUsers: res.sharedUsers}
+        ).exec();
+        return(res);
+      })
+    );
   }
 
   /**
@@ -85,9 +101,9 @@ export class ListService {
    * @param image
    * @returns DB response
    */
-  public addImageToList(listId: string, image: string): Query<ListDocument, ListDocument> {
+  public addImageToList(listId: string, image: string, user: ListUser): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate(
-      { _id: listId },
+      { _id: listId, 'owner._id': user._id },
       { $push: { images: image } },
       { 'new': true }
     );
