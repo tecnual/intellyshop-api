@@ -21,7 +21,7 @@ export class ListController {
    */
   @Post()
   async upsertList(@Req() req: Request, @Body() body: AddListDto): Promise<any> {
-    return this.listService.upsert(body, req.user);
+    return this.listService.upsert(body, req.user as ListUser);
   }
 
   /**
@@ -84,8 +84,8 @@ export class ListController {
   }
 
   @Patch('/:listId/cart/item/') // TODO: pasar el itemId en los parametros de la url
-  addItemToListCart(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
-    return this.listService.addItemToCartList(listId, req.body, req.user as ListUser);
+  addItemToCartList(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
+    return this.listService.addItemToListCart(listId, req.body, req.user as ListUser);
   }
 
   @Delete('/:listId/item/:listItemId')
@@ -94,8 +94,8 @@ export class ListController {
   }
 
   @Delete('/:listId/list')
-  removeListItems(@Param('listId') listId: string) {
-    return this.listService.removeListItems(listId);
+  removeListItems(@Param('listId') listId: string, @Req() req: Request) {
+    return this.listService.removeListItems(listId, req.user as ListUser);
   }
 
   @Delete('/:listId/cart')
@@ -105,7 +105,7 @@ export class ListController {
 
   @Delete('/:listId/cart/item/:cartItemId')
   removeItemFromCartList(@Param('listId') listId: string, @Param('cartItemId') cartItemId: string, @Req() req: Request) {
-    return this.listService.removeItemFromListCart(listId, cartItemId, req.user as ListUser);
+    return this.listService.removeItemFromCartList(listId, cartItemId, req.user as ListUser);
   }
 
   @Put('/:listId/list/item/:listItemId')

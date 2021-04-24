@@ -13,17 +13,27 @@ export class ListService {
     @InjectModel(SavedList.name) private readonly savedListModel: Model<SavedListDocument>,
   ) { }
 
-  async upsert(addListDto: AddListDto, user: any): Promise<any> {
+  async upsert(addListDto: AddListDto, user: ListUser): Promise<any> {
     addListDto.owner = user;
     const addedList = new this.listModel(addListDto);
 
-    return this.listModel.findOneAndUpdate({ _id: addedList._id }, addedList, { new: true, upsert: true }).exec();
+    return this.listModel.findOneAndUpdate({ _id: addedList._id }, addedList, { new: true, upsert: true }).then(data => {
+      console.log('data', data);
+      this.savedListModel.updateMany({listId: data._id}, {tags: data.tags}).exec()
+    });
   }
 
   async getUserLists(user: ListUser): Promise<List[]> {
     return this.listModel.find({ "owner._id": user._id }).exec();
   }
 
+  /**
+   * Add items to items list
+   * @param listId
+   * @param listItem
+   * @param user
+   * @returns
+   */
   public addItemToItemsList(listId: string, listItem: ListItemDocument, user: ListUser): Observable<any> {
     listItem._id = new Types.ObjectId();
     return from(this.listModel.updateOne(
@@ -32,7 +42,14 @@ export class ListService {
     ));
   }
 
-  public addItemToCartList(listId: string, cartItem: ListItemDocument, user: ListUser): Observable<any> {
+  /**
+   * Add items to list cart
+   * @param listId
+   * @param cartItem
+   * @param user
+   * @returns
+   */
+  public addItemToListCart(listId: string, cartItem: ListItemDocument, user: ListUser): Observable<any> {
     cartItem._id = new Types.ObjectId();
     return from(this.listModel.updateOne(
       { _id: listId, 'owner._id': user._id},
@@ -40,11 +57,25 @@ export class ListService {
     ));
   }
 
+  /**
+   * Remove items from items list
+   * @param listId
+   * @param listItemId
+   * @param user
+   * @returns
+   */
   public async removeItemFromList(listId: string, listItemId: string, user: ListUser) {
     return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $pull: { listItems: { _id: new Types.ObjectId(listItemId) } } });
   }
 
-  public removeItemFromListCart(listId: string, cartItemId: any, user: ListUser) {
+  /**
+   * Remove items from cart list
+   * @param listId
+   * @param cartItemId
+   * @param user
+   * @returns
+   */
+  public removeItemFromCartList(listId: string, cartItemId: any, user: ListUser) {
     return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $pull: { cartItems: { _id: new Types.ObjectId(cartItemId) } } });
   }
 
@@ -61,14 +92,32 @@ export class ListService {
     return this.listModel.updateOne(query, { $set: setUpdate });
   }
 
-  public async removeListItems(listId: string) {
-    return this.listModel.updateOne({ _id: listId }, { $set: { listItems: [] } });
+  /**
+   * remove list Items
+   * @param listId
+   * @param user
+   * @returns
+   */
+  public async removeListItems(listId: string, user: ListUser) {
+    return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $set: { listItems: [] } });
   }
 
+  /**
+   * Remove cart items
+   * @param listId
+   * @param user
+   * @returns
+   */
   public async removeCartItems(listId: string, user: ListUser) {
     return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $set: { cartItems: [] } });
   }
 
+  /**
+   * Delete list
+   * @param listId
+   * @param user
+   * @returns
+   */
   public async deleteList(listId: string, user: ListUser) {
     return this.listModel.deleteOne({ _id: listId, 'owner._id': user._id });
   }
