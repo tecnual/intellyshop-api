@@ -1,16 +1,15 @@
-import { Inject, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ListController } from './list.controller';
 import { ListService } from './list.service';
-import { List, ListSchema, ListSchemaProvider } from './list.schema';
-import { AuthService } from 'src/core/auth/auth.service';
-import { AuthModule } from 'src/core/auth/auth.module';
-import { UserModule } from 'src/core/user/user.module';
+import { ListSchemaProvider } from './list.schema';
+import { SavedListSchemaProvider } from './saved-list/saved-list.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([
-      ListSchemaProvider
+      ListSchemaProvider,
+      SavedListSchemaProvider
     ])
   ],
   controllers: [ListController],

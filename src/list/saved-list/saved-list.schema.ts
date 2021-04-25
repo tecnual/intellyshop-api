@@ -23,8 +23,26 @@ export class Totals {
 })
 
 export class SavedList extends List {
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Store'})
+  listId;
+
   @Prop({type: Totals})
   totals?;
 }
 
 export const SavedListSchema = SchemaFactory.createForClass(SavedList);
+export const SavedListSchemaProvider = {
+  name: SavedList.name,
+  useFactory: () => {
+    SavedListSchema.pre('find', preQuery);
+    return SavedListSchema;
+  }
+ };
+
+ const preQuery = function() {
+  const query = this.getQuery();
+  const ownerId = query['owner._id'];
+  delete query['owner._id'];
+  query['$or'] = [{'owner._id': ownerId} , { 'sharedUsers._id': ownerId}]
+  this.setQuery(query);
+}

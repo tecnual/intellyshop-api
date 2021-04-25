@@ -12,6 +12,7 @@ export class AddListDto {
   sharedUsers?: ListUser[];
   totals?: any;
   store?: any;
+  tags?: string[];
 };
 
 export class ListItemDto {
