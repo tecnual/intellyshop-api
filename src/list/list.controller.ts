@@ -13,11 +13,22 @@ import { ErrorResponse } from 'src/shared/models/error-response.interface';
 export class ListController {
   constructor(private readonly listService: ListService) { }
 
+  /**
+   * Update a new list or generate a new one
+   * @param req
+   * @param body
+   * @returns
+   */
   @Post()
   async upsertList(@Req() req: Request, @Body() body: AddListDto): Promise<any> {
-    return this.listService.upsert(body, req.user);
+    return this.listService.upsert(body, req.user as ListUser);
   }
 
+  /**
+   * Get users lists
+   * @param req
+   * @returns
+   */
   @Get()
   async getUserLists(@Req() req: Request): Promise<List[]> {
     return this.listService.getUserLists(req.user as ListUser);
@@ -61,14 +72,20 @@ export class ListController {
     }
   }
 
-  @Patch('/:listId/item/') // TODO: pasar el itemId en los parametros de la url
+  /**
+   * Add item to items list
+   * @param listId
+   * @param req
+   * @returns
+   */
+  @Patch('/:listId/item/')
   addItemToList(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
     return this.listService.addItemToItemsList(listId, req.body, req.user as ListUser);
   }
 
   @Patch('/:listId/cart/item/') // TODO: pasar el itemId en los parametros de la url
-  addItemToListCart(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
-    return this.listService.addItemToCartList(listId, req.body, req.user as ListUser);
+  addItemToCartList(@Param('listId') listId: string, @Req() req: Request): Observable<any> { // TODO: cambiar Req por body
+    return this.listService.addItemToListCart(listId, req.body, req.user as ListUser);
   }
 
   @Delete('/:listId/item/:listItemId')
@@ -77,8 +94,8 @@ export class ListController {
   }
 
   @Delete('/:listId/list')
-  removeListItems(@Param('listId') listId: string) {
-    return this.listService.removeListItems(listId);
+  removeListItems(@Param('listId') listId: string, @Req() req: Request) {
+    return this.listService.removeListItems(listId, req.user as ListUser);
   }
 
   @Delete('/:listId/cart')
@@ -88,7 +105,7 @@ export class ListController {
 
   @Delete('/:listId/cart/item/:cartItemId')
   removeItemFromCartList(@Param('listId') listId: string, @Param('cartItemId') cartItemId: string, @Req() req: Request) {
-    return this.listService.removeItemFromListCart(listId, cartItemId, req.user as ListUser);
+    return this.listService.removeItemFromCartList(listId, cartItemId, req.user as ListUser);
   }
 
   @Put('/:listId/list/item/:listItemId')
@@ -110,9 +127,9 @@ export class ListController {
    * addImageTolist
    */
   @Post('/:listId/image')
-  public async addImageTolist(@Param('listId') listId: string, @Body() body: any): Promise<DefaultResponse<any>> {
+  public async addImageTolist(@Param('listId') listId: string, @Body() body: any, @Req() req: Request): Promise<DefaultResponse<any>> {
     try {
-      const data = await this.listService.addImageToList(listId, body.image);
+      const data = await this.listService.addImageToList(listId, body.image, req.user as ListUser);
       return new DefaultResponse<List>(data);
     } catch (e) {
       return new DefaultResponse<ErrorResponse>(e);
@@ -129,5 +146,6 @@ export class ListController {
       return new DefaultResponse<List>(data);
     } catch (e) {
       return new DefaultResponse<ErrorResponse>(e);
-    }  }
+    }
+  }
 }

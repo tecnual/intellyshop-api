@@ -19,6 +19,8 @@ export class SavedListService {
    */
   public saveList(list: AddListDto): Promise<SavedListDocument> {
     const savedList = new this.savedListModel(list);
+    savedList.listId = list._id;
+    savedList._id = null;
     return savedList.save();
   }
 

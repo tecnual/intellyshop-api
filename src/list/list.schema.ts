@@ -52,6 +52,9 @@ export class List {
   @Prop()
   images?: string[];
 
+  @Prop()
+  tags?: string[];
+
 }
 
 @Schema({
