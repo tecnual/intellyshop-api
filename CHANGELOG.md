@@ -1,3 +1,18 @@
+### 1.8.0 (2021-04-25)
+
+##### Documentation Changes
+
+*  lists service jsdocs (c7077d1d)
+
+##### New Features
+
+*  List tags (eea9704e)
+*  Get saved lists endpoint (fccfad2c)
+
+##### Bug Fixes
+
+*  Shared users on saved lists (b36ad0d4)
+
 #### 1.7.1 (2021-04-18)
 
 ##### New Features
