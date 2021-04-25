@@ -18,7 +18,6 @@ export class ListService {
     const addedList = new this.listModel(addListDto);
 
     return this.listModel.findOneAndUpdate({ _id: addedList._id }, addedList, { new: true, upsert: true }).then(data => {
-      console.log('data', data);
       this.savedListModel.updateMany({listId: data._id}, {tags: data.tags}).exec()
     });
   }
@@ -79,6 +78,15 @@ export class ListService {
     return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $pull: { cartItems: { _id: new Types.ObjectId(cartItemId) } } });
   }
 
+  /**
+   * Update item from list
+   * @param listId
+   * @param listItemId
+   * @param listItem
+   * @param type
+   * @param user
+   * @returns
+   */
   public async updateItemFromList(listId: string, listItemId: string, listItem: any, type: string, user: ListUser) {// TODO:
 
     const setUpdate: any = {}
@@ -172,7 +180,10 @@ export class ListService {
   }
 
   /**
-   * modifyList
+   * Modify list
+   * @param listId
+   * @param fields
+   * @returns
    */
   public modifyList(listId: string, fields: any): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate({ _id: listId }, fields, { new: true });
