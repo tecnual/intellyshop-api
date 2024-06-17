@@ -10,7 +10,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         let dbUrl;
 
         if (configService.get<string>('database.schema') === 'mongodb+srv') {
-          dbUrl = configService.get<string>('database.schema') +
+          dbUrl =
+            configService.get<string>('database.schema') +
             '://' +
             configService.get<string>('database.user') +
             ':' +
@@ -22,7 +23,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             '?' +
             configService.get<string>('database.options');
         } else {
-          dbUrl = configService.get<string>('database.schema') +
+          dbUrl =
+            configService.get<string>('database.schema') +
             '://' +
             configService.get<string>('database.user') +
             ':' +
@@ -36,17 +38,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             '?' +
             configService.get<string>('database.options');
         }
-        console.info('Mongo conexion: ', dbUrl);
-        return ({
-          useCreateIndex: true,
-          autoIndex: true,
-          useFindAndModify: false,
-          useNewUrlParser: true,
-          uri: dbUrl
-        })
+        //console.info('Mongo conexion: ', dbUrl);
+        return {
+          //useCreateIndex: true,
+          //autoIndex: true,
+          //useFindAndModify: false,
+          //useNewUrlParser: true,
+          uri: dbUrl,
+        };
       },
       inject: [ConfigService],
-    })
+    }),
   ],
 })
-export class MongoProviderModule { }
+export class MongoProviderModule {}

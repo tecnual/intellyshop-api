@@ -1,6 +1,7 @@
-import { User } from "src/core/user/user.schema";
-import { Item } from "src/item/item.schema";
-import { ListUser } from "../list.schema";
+import { User } from 'src/core/user/user.schema';
+import { Item } from 'src/item/item.schema';
+import { ListUser } from '../list.schema';
+import { Types } from 'mongoose';
 
 export class AddListDto {
   _id?: string;
@@ -13,7 +14,29 @@ export class AddListDto {
   totals?: any;
   store?: any;
   tags?: string[];
-};
+  cards?: Card[];
+  files?: ListFile[];
+}
+
+export class Card {
+  file: string;
+  number: string;
+}
+
+export interface ListFile {
+  file: string;
+  type: FileType;
+  mimeType: string;
+  date: Date;
+  invoice_id: Types.ObjectId;
+}
+
+export enum FileType {
+  IMAGE = 'Image',
+  TICKET = 'Ticket',
+  CARD = 'Card',
+  OTHER = 'Other'
+}
 
 export class ListItemDto {
   quantity: number;

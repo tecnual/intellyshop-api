@@ -13,8 +13,6 @@
 //       super(TwitterConfig);
 //   }
 //   async validate(token, tokenSecret, profile) {
-//     console.log('validate');
-//     console.log({token, tokenSecret, profile});
 //     const user = await this.authService.validateUserFromTwitter(profile.email);
 //     if (!user) {
 //       throw new UnauthorizedException();

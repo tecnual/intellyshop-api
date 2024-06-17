@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as sch } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
-export type StoreDocument = Store & Document;
+export type StoreDocument = HydratedDocument<Store>;
 
 @Schema()
 export class Store {
@@ -12,7 +12,12 @@ export class Store {
   Address: string;
 
   @Prop()
-  type: string;
+  type: StoreType;
+}
+
+export enum StoreType {
+  SUPERMARKET = 'SuperMarket',
+  ONLINE = 'Online'
 }
 
 export const StoreSchema = SchemaFactory.createForClass(Store);

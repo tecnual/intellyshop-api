@@ -1,11 +1,10 @@
-import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as Sch, ObjectId } from 'mongoose';
 
 export type ImageDocument = Image & Document;
 
 @Schema()
 export class Image {
-
   @Prop()
   filename: string;
 

@@ -3,4 +3,5 @@ export class AddUserDto {
   readonly name?: string;
   readonly password?: string;
   readonly email?: string;
+  readonly lang?: string;
 }

@@ -1,10 +1,10 @@
-import { Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import { Model, Document, Schema as Sch, Types, model } from 'mongoose';
-import { AuthService } from 'src/core/auth/auth.service';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Schema as Sch, Types } from 'mongoose';
+import { Card, ListFile } from './dto/add-list.dto';
 
-export type ListUserDocument = ListUser & Document;
-export type ListItemDocument = ListItem & Document;
-export type ListDocument = List & Document;
+export type ListUserDocument = HydratedDocument<ListUser>;
+export type ListItemDocument = HydratedDocument<ListItem>;
+export type ListDocument = HydratedDocument<List>;
 
 @Schema()
 export class ListUser {
@@ -28,16 +28,16 @@ export class List {
   @Prop()
   description: string;
 
-  @Prop({type: Boolean, default: true})
+  @Prop({ type: Boolean, default: true })
   income: boolean;
 
-  @Prop({type: ListUser})
+  @Prop({ type: ListUser })
   owner;
 
-  @Prop({type: Boolean, default: false})
+  @Prop({ type: Boolean, default: false })
   saved;
 
-  @Prop({ type: Sch.Types.ObjectId, ref: 'Store'})
+  @Prop({ type: Sch.Types.ObjectId, ref: 'Store' })
   store?;
 
   @Prop()
@@ -55,6 +55,11 @@ export class List {
   @Prop()
   tags?: string[];
 
+  @Prop()
+  cards?: Card[];
+
+  @Prop()
+  files?: ListFile[];
 }
 
 @Schema({
@@ -83,11 +88,9 @@ export class ListItem {
   itemId;
 }
 
+export const ListSchema = SchemaFactory.createForClass(List);
 
-
- export const ListSchema = SchemaFactory.createForClass(List);
-
- export const ListSchemaProvider = {
+export const ListSchemaProvider = {
   name: List.name,
   useFactory: () => {
     ListSchema.pre('find', preQuery);
@@ -95,12 +98,11 @@ export class ListItem {
 
     return ListSchema;
   }
- };
-  const preQuery = function() {
-    const query = this.getQuery();
-    const ownerId = query['owner._id'];
-    delete query['owner._id'];
-    query['$or'] = [{'owner._id': ownerId} , { 'sharedUsers._id': ownerId}]
-    this.setQuery(query);
-  }
-
+};
+const preQuery = function () {
+  const query = this.getQuery();
+  const ownerId = query['owner._id'];
+  delete query['owner._id'];
+  query['$or'] = [{ 'owner._id': ownerId }, { 'sharedUsers._id': ownerId }];
+  this.setQuery(query);
+};

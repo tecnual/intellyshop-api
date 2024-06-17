@@ -4,15 +4,18 @@ import { ListController } from './list.controller';
 import { ListService } from './list.service';
 import { ListSchemaProvider } from './list.schema';
 import { SavedListSchemaProvider } from './saved-list/saved-list.schema';
+import { InvoiceService } from 'src/invoice/invoice.service';
+import { InvoiceSchemaProvider } from 'src/invoice/invoice.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([
       ListSchemaProvider,
-      SavedListSchemaProvider
+      SavedListSchemaProvider,
+      InvoiceSchemaProvider
     ])
   ],
   controllers: [ListController],
-  providers: [ ListService ],
+  providers: [ListService, InvoiceService]
 })
 export class ListModule {}
