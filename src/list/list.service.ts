@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Query, Types } from 'mongoose';
+import { Model, Query, Schema as Sch, Types } from 'mongoose';
 import { from, Observable } from 'rxjs';
 import { AddListDto, ListFile } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
@@ -32,8 +32,12 @@ export class ListService {
     return result;
   }
 
-  async getUserLists(user: ListUser): Promise<List[]> {
-    return this.listModel.find({ 'owner._id': user._id }).exec();
+  async getUserLists(user: ListUser): Promise<any[]> {
+    const lists = await this.listModel
+      .find({ 'owner._id': user._id })
+      .populate({ path: 'invoices', model: 'Invoice' })
+      .exec();
+    return lists;
   }
 
   /**
@@ -288,19 +292,39 @@ export class ListService {
   public async addInvoices(
     list_id: string,
     files: ListFile[],
-    user_id: Types.ObjectId
+    user_id: Sch.Types.ObjectId
   ): Promise<ListFile[]> {
-    files.map(async (file) => {
-      const invoice: Invoice = await this.invoiceService.addInvoiceFromFile(
-        file.file,
-        list_id,
-        user_id
-      );
-      const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
-      console.log('Invoice: ', resultInvoice);
-      file.invoice_id = resultInvoice._id;
-    });
+    const finalFiles: ListFile[] = await Promise.all(
+      files.map(async (file) => {
+        const invoice: Invoice = await this.invoiceService.invoiceFromFile(
+          file.file,
+          list_id,
+          user_id
+        );
+        const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
+        await this.addInvoiceToList(list_id, user_id, resultInvoice._id);
+        file.invoice_id = resultInvoice._id;
+        return file;
+      })
+    );
+    return finalFiles;
+  }
 
-    return files;
+  /**
+   * Add invoice to list
+   * @param listId
+   * @param invoice
+   * @returns DB response
+   */
+  public addInvoiceToList(
+    listId: string,
+    user_id: Sch.Types.ObjectId,
+    invoice_id: Types.ObjectId
+  ): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate(
+      { _id: listId, 'owner._id': user_id },
+      { $push: { invoices: invoice_id } },
+      { new: true }
+    );
   }
 }

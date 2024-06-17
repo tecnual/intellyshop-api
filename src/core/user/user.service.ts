@@ -10,7 +10,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService
-  ) { }
+  ) {}
 
   add(addUserDto: AddUserDto): Promise<UserDocument> {
     const addedUser = new this.userModel(addUserDto);
@@ -30,14 +30,18 @@ export class UserService {
    * @param email
    * @returns
    */
-   public generateConfirmEmailToken(email: string) {
-    return this.jwtService.sign({email});
+  public generateConfirmEmailToken(email: string) {
+    return this.jwtService.sign({ email });
   }
 
   /**
    * updateConfirm
    */
-  public updateConfirm(query: any): Query<UserDocument, UserDocument>  {
-    return this.userModel.findOneAndUpdate(query, {confirmed: true}, {new:true});
+  public updateConfirm(query: any): Query<UserDocument, UserDocument> {
+    return this.userModel.findOneAndUpdate(
+      query,
+      { confirmed: true },
+      { new: true }
+    );
   }
 }

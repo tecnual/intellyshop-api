@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { Invoice, InvoiceLine, UnitType } from './invoice.schema';
 
 import * as pdf2table from 'pdf2table';
@@ -12,11 +12,11 @@ export class InvoiceService {
   ) {}
 
   async addNewInvoice(invoice: Invoice) {
-    invoice._id = new Types.ObjectId();
-    return this.invoiceModel.create(invoice);
+    const newInvoice = new this.invoiceModel(invoice);
+    return newInvoice.save();
   }
 
-  async addInvoiceFromFile(base64File, list_id, user_id): Promise<Invoice> {
+  async invoiceFromFile(base64File, list_id, user_id): Promise<Invoice> {
     const data = await this.getDataFromFile(base64File);
     //console.log('Factura: ', data);
     return this.getInvoiceFromData(data, list_id, user_id);
@@ -52,7 +52,6 @@ export class InvoiceService {
     data.map((elem) => {
       count++;
       if (elem[0] === 'TOTAL (€)') {
-        //console.log('elem : ', elem);
         total = elem[1].replace(',', '.') as number;
         totalLineNumber = count;
       }

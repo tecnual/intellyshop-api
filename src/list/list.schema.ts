@@ -37,8 +37,11 @@ export class List {
   @Prop({ type: Boolean, default: false })
   saved;
 
-  @Prop({ type: Sch.Types.ObjectId, ref: 'Store' })
+  @Prop({ type: Types.ObjectId, ref: 'Store' })
   store?;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Invoice' }] })
+  invoices?;
 
   @Prop()
   listItems: ListItem[];
@@ -61,7 +64,6 @@ export class List {
   @Prop()
   files?: ListFile[];
 }
-
 @Schema({
   timestamps: { createdAt: true, updatedAt: true }
 })

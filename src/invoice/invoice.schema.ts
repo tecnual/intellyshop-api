@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as Sch, Types } from 'mongoose';
+import { HydratedDocument, Schema as Sch } from 'mongoose';
 
 export type InvoiceDocument = HydratedDocument<Invoice>;
 
@@ -7,9 +7,6 @@ export type InvoiceDocument = HydratedDocument<Invoice>;
   timestamps: { createdAt: true, updatedAt: true }
 })
 export class Invoice {
-  @Prop()
-  _id: Types.ObjectId;
-
   @Prop()
   lines: InvoiceLine[];
 
@@ -71,7 +68,7 @@ export const InvoiceSchema = SchemaFactory.createForClass(Invoice);
 export const InvoiceSchemaProvider = {
   name: Invoice.name,
   useFactory: () => {
-    InvoiceSchema.pre('find', preQuery);
+    //InvoiceSchema.pre('find', preQuery);
     InvoiceSchema.pre('updateOne', preQuery);
 
     return InvoiceSchema;

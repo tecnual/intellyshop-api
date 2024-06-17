@@ -64,7 +64,7 @@ export class ListController {
    * @returns
    */
   @Get()
-  async getUserLists(@Req() req: Request): Promise<List[]> {
+  async getUserLists(@Req() req: Request): Promise<any[]> {
     return this.listService.getUserLists(req.user as ListUser);
   }
 
@@ -279,15 +279,12 @@ export class ListController {
   ) {
     try {
       const user = req.user as ListUser;
+      const files = await this.listService.addInvoices(listId, body, user._id);
       const data: ListDocument = await this.listService.addFilesToList(
         listId,
-        body,
+        files,
         req.user as ListUser
       );
-      if (data) {
-        this.listService.addInvoices(listId, body, user._id);
-      }
-
       return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
     } catch (e) {
       return res
