@@ -14,8 +14,8 @@ import { join } from 'path';
           port: 465,
           secure: true, // upgrade later with STARTTLS
           auth: {
-            user: "info@tecnual.com",
-            pass: "lbrtlgo10",
+            user: "xxxxxxxxxxxx@xxxx.xxx",
+            pass: "xxxxxxx",
           },
         },
         defaults: {
