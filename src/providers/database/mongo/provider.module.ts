@@ -34,21 +34,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             ':' +
             configService.get<string>('database.port') +
             '/' +
-            configService.get<string>('database.dbName') +
             '?' +
             configService.get<string>('database.options');
         }
-        //console.info('Mongo conexion: ', dbUrl);
+        console.info('Mongo conexion: ', dbUrl);
         return {
           //useCreateIndex: true,
           //autoIndex: true,
           //useFindAndModify: false,
           //useNewUrlParser: true,
           uri: dbUrl,
+          dbName: configService.get<string>('database.dbName')
         };
       },
-      inject: [ConfigService],
-    }),
-  ],
+      inject: [ConfigService]
+    })
+  ]
 })
 export class MongoProviderModule {}
