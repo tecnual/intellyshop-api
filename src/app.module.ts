@@ -22,6 +22,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     SavedListModule,
     MongoProviderModule,
     ItemModule,
+    InvoiceModule,
     StoreModule,
     InvoiceModule,
     ConfigModule.forRoot({

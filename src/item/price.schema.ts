@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { ListUser } from 'src/list/list.schema';
+import { Document, Types } from 'mongoose';
 
 export type PriceDocument = Price & Document;
 
@@ -14,8 +13,8 @@ export class Price {
   @Prop({ type: Object })
   openFoodFactsPrice;
 
-  @Prop()
-  createdBy: ListUser;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
+  createdBy: Types.ObjectId;
 
   @Prop()
   createdOn: Date;
@@ -29,29 +28,29 @@ export class Price {
   @Prop()
   date: Date;
 
-  constructor(
-    price: number,
-    user: ListUser,
-    source,
-    currency,
-    openFoodFactsPrice?: any
-  ) {
+  @Prop({ type: Types.ObjectId, ref: 'Invoice', required: false })
+  invoice_id?;
+
+  constructor(price: number, user: Types.ObjectId, source, currency, date, openFoodFactsPrice?: any, invoiceId?) {
     this.price = price;
     this.createdBy = user;
     this.source = source;
     this.currency = currency;
-    this.createdOn = new Date();
+    this.date = date;
     if (source === Source.OPEN_FOOD_FACTS && openFoodFactsPrice) {
       this.openFoodFactsPrice = openFoodFactsPrice;
       this.date = openFoodFactsPrice.date;
     }
+    if (invoiceId) this.invoice_id = invoiceId;
+    this.createdOn = new Date();
   }
 }
 
 export enum Source {
   SYSTEM = 'System',
   OPEN_FOOD_FACTS = 'OpenFoodFacts',
-  USER = 'User'
+  USER = 'User',
+  INVOICE = 'Invoice'
 }
 
 export const PriceSchema = SchemaFactory.createForClass(Price);

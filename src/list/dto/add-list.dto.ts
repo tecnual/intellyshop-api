@@ -29,6 +29,8 @@ export interface ListFile {
   mimeType: string;
   date: Date;
   invoice_id: Types.ObjectId;
+  size: number;
+  name: string;
 }
 
 export enum FileType {
