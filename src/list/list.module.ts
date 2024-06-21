@@ -5,17 +5,22 @@ import { ListService } from './list.service';
 import { ListSchemaProvider } from './list.schema';
 import { SavedListSchemaProvider } from './saved-list/saved-list.schema';
 import { InvoiceService } from 'src/invoice/invoice.service';
-import { InvoiceSchemaProvider } from 'src/invoice/invoice.schema';
-
+import { ItemService } from 'src/item/item.service';
+import { OpenFFService } from 'src/shared/openFF/openFF.Service';
+import { ItemSchemaProvider } from 'src/item/item.schema';
+import { HttpModule } from '@nestjs/axios';
+import { InvoiceSchemaProvider } from 'src/invoice/models/invoice.schema';
 @Module({
   imports: [
-    MongooseModule.forFeatureAsync([
-      ListSchemaProvider,
-      SavedListSchemaProvider,
-      InvoiceSchemaProvider
-    ])
+    MongooseModule.forFeatureAsync([ListSchemaProvider, SavedListSchemaProvider, InvoiceSchemaProvider, ItemSchemaProvider]),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5
+      })
+    })
   ],
   controllers: [ListController],
-  providers: [ListService, InvoiceService]
+  providers: [ListService, InvoiceService, ItemService, OpenFFService]
 })
 export class ListModule {}

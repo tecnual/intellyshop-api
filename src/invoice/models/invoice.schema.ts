@@ -11,6 +11,9 @@ export class Invoice {
   _id: Types.ObjectId;
 
   @Prop()
+  number: string;
+
+  @Prop()
   lines: InvoiceLine[];
 
   @Prop()
@@ -28,7 +31,9 @@ export class Invoice {
   @Prop({ type: Sch.Types.ObjectId, ref: 'User' })
   user_id;
 
-  constructor(lines, currency, total, date, list_id, user_id) {
+  constructor(number, lines, currency, total, date, list_id, user_id, invoiceId?) {
+    this._id = invoiceId ? invoiceId : new Types.ObjectId();
+    this.number = number;
     this.lines = lines;
     this.currency = currency;
     this.total = total;
@@ -39,6 +44,12 @@ export class Invoice {
 }
 
 export class InvoiceLine {
+  @Prop()
+  _id: Types.ObjectId;
+
+  @Prop({ required: false })
+  barcode?: string;
+
   @Prop()
   quantity: number;
 
@@ -54,8 +65,8 @@ export class InvoiceLine {
   @Prop({ required: false })
   discount?: string;
 
-  @Prop({ type: Sch.Types.ObjectId, ref: 'Item', required: false })
-  itemId?;
+  @Prop({ type: Types.ObjectId, ref: 'Item', required: false })
+  item_id?;
 }
 
 export enum UnitType {
@@ -71,9 +82,8 @@ export const InvoiceSchema = SchemaFactory.createForClass(Invoice);
 export const InvoiceSchemaProvider = {
   name: Invoice.name,
   useFactory: () => {
-    InvoiceSchema.pre('find', preQuery);
+    //InvoiceSchema.pre('find', preQuery);
     InvoiceSchema.pre('updateOne', preQuery);
-
     return InvoiceSchema;
   }
 };

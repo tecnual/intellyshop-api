@@ -5,18 +5,23 @@ import { Item, ItemSchema } from './item.schema';
 import { ItemService } from './item.service';
 import { OpenFFService } from 'src/shared/openFF/openFF.Service';
 import { HttpModule } from '@nestjs/axios';
+import { InvoiceService } from 'src/invoice/invoice.service';
+import { Invoice, InvoiceSchema } from 'src/invoice/models/invoice.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Item.name, schema: ItemSchema }]),
+    MongooseModule.forFeature([
+      { name: Item.name, schema: ItemSchema },
+      { name: Invoice.name, schema: InvoiceSchema }
+    ]),
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,
-        maxRedirects: 5,
-      }),
-    }),
+        maxRedirects: 5
+      })
+    })
   ],
   controllers: [ItemController],
-  providers: [ItemService, OpenFFService],
+  providers: [ItemService, OpenFFService, InvoiceService]
 })
 export class ItemModule {}

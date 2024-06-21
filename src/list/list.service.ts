@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Query, Types } from 'mongoose';
+import { Model, Query, Schema as Sch, Types } from 'mongoose';
 import { from, Observable } from 'rxjs';
 import { AddListDto, ListFile } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
 import { SavedList } from './saved-list/saved-list.schema';
 import { InvoiceService } from 'src/invoice/invoice.service';
-import { Invoice } from 'src/invoice/invoice.schema';
+import { Invoice } from 'src/invoice/models/invoice.schema';
 
 @Injectable()
 export class ListService {
@@ -26,14 +26,23 @@ export class ListService {
         upsert: true
       })
       .exec();
-    await this.savedListModel
-      .updateMany({ listId: result._id }, { tags: result.tags })
-      .exec();
+    await this.savedListModel.updateMany({ listId: result._id }, { tags: result.tags }).exec();
     return result;
   }
 
-  async getUserLists(user: ListUser): Promise<List[]> {
-    return this.listModel.find({ 'owner._id': user._id }).exec();
+  async getUserLists(user: ListUser): Promise<any[]> {
+    const lists = await this.listModel
+      .find({ 'owner._id': user._id })
+      .populate({
+        path: 'invoices',
+        model: 'Invoice',
+        populate: {
+          path: 'lines.item_id',
+          model: 'Item'
+        }
+      })
+      .exec();
+    return lists;
   }
 
   /**
@@ -43,17 +52,10 @@ export class ListService {
    * @param user
    * @returns
    */
-  public addItemToItemsList(
-    listId: string,
-    listItem: ListItemDocument,
-    user: ListUser
-  ): Observable<any> {
+  public addItemToItemsList(listId: string, listItem: ListItemDocument, user: ListUser): Observable<any> {
     listItem._id = new Types.ObjectId();
     return from(
-      this.listModel.updateOne(
-        { _id: listId, 'owner._id': user._id },
-        { $push: { listItems: { $each: [listItem], $position: 0 } } }
-      )
+      this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $push: { listItems: { $each: [listItem], $position: 0 } } })
     );
   }
 
@@ -64,17 +66,10 @@ export class ListService {
    * @param user
    * @returns
    */
-  public addItemToListCart(
-    listId: string,
-    cartItem: ListItemDocument,
-    user: ListUser
-  ): Observable<any> {
+  public addItemToListCart(listId: string, cartItem: ListItemDocument, user: ListUser): Observable<any> {
     cartItem._id = new Types.ObjectId();
     return from(
-      this.listModel.updateOne(
-        { _id: listId, 'owner._id': user._id },
-        { $push: { cartItems: { $each: [cartItem], $position: 0 } } }
-      )
+      this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $push: { cartItems: { $each: [cartItem], $position: 0 } } })
     );
   }
 
@@ -85,11 +80,7 @@ export class ListService {
    * @param user
    * @returns
    */
-  public async removeItemFromList(
-    listId: string,
-    listItemId: string,
-    user: ListUser
-  ) {
+  public async removeItemFromList(listId: string, listItemId: string, user: ListUser) {
     return this.listModel.updateOne(
       { _id: listId, 'owner._id': user._id },
       { $pull: { listItems: { _id: new Types.ObjectId(listItemId) } } }
@@ -103,11 +94,7 @@ export class ListService {
    * @param user
    * @returns
    */
-  public removeItemFromCartList(
-    listId: string,
-    cartItemId: any,
-    user: ListUser
-  ) {
+  public removeItemFromCartList(listId: string, cartItemId: any, user: ListUser) {
     return this.listModel.updateOne(
       { _id: listId, 'owner._id': user._id },
       { $pull: { cartItems: { _id: new Types.ObjectId(cartItemId) } } }
@@ -123,26 +110,12 @@ export class ListService {
    * @param user
    * @returns
    */
-  public async updateItemFromList(
-    listId: string,
-    listItemId: string,
-    listItem: any,
-    type: string,
-    user: ListUser
-  ) {
-    // TODO:
-
+  public async updateItemFromList(listId: string, listItemId: string, listItem: any, type: string, user: ListUser) {
     const setUpdate: any = {};
     listItem.name ? (setUpdate[type + 'Items.$.name'] = listItem.name) : null;
-    listItem.itemId
-      ? (setUpdate[type + 'Items.$.itemId'] = listItem.itemId)
-      : null;
-    listItem.quantity
-      ? (setUpdate[type + 'Items.$.quantity'] = Number(listItem.quantity))
-      : null;
-    listItem.price
-      ? (setUpdate[type + 'Items.$.price'] = Number(listItem.price))
-      : null;
+    listItem.itemId ? (setUpdate[type + 'Items.$.itemId'] = listItem.itemId) : null;
+    listItem.quantity ? (setUpdate[type + 'Items.$.quantity'] = Number(listItem.quantity)) : null;
+    listItem.price ? (setUpdate[type + 'Items.$.price'] = Number(listItem.price)) : null;
 
     const query = { _id: listId, 'owner._id': user._id };
     query[`${type}Items._id`] = new Types.ObjectId(listItemId);
@@ -156,10 +129,7 @@ export class ListService {
    * @returns
    */
   public async removeListItems(listId: string, user: ListUser) {
-    return this.listModel.updateOne(
-      { _id: listId, 'owner._id': user._id },
-      { $set: { listItems: [] } }
-    );
+    return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $set: { listItems: [] } });
   }
 
   /**
@@ -169,10 +139,7 @@ export class ListService {
    * @returns
    */
   public async removeCartItems(listId: string, user: ListUser) {
-    return this.listModel.updateOne(
-      { _id: listId, 'owner._id': user._id },
-      { $set: { cartItems: [] } }
-    );
+    return this.listModel.updateOne({ _id: listId, 'owner._id': user._id }, { $set: { cartItems: [] } });
   }
 
   /**
@@ -192,11 +159,7 @@ export class ListService {
    * @param user
    * @returns
    */
-  public addSharedUser(
-    listId: string,
-    sharedUser: ListUser,
-    user: ListUser
-  ): Observable<any> {
+  public addSharedUser(listId: string, sharedUser: ListUser, user: ListUser): Observable<any> {
     return from(
       this.listModel
         .findOneAndUpdate(
@@ -206,9 +169,7 @@ export class ListService {
         )
         .then((res) => {
           // add user to saved lists
-          this.savedListModel
-            .updateMany({ listId }, { sharedUsers: res.sharedUsers })
-            .exec();
+          this.savedListModel.updateMany({ listId }, { sharedUsers: res.sharedUsers }).exec();
           return res;
         })
     );
@@ -220,16 +181,8 @@ export class ListService {
    * @param image
    * @returns DB response
    */
-  public addImageToList(
-    listId: string,
-    image: string,
-    user: ListUser
-  ): Query<ListDocument, ListDocument> {
-    return this.listModel.findByIdAndUpdate(
-      { _id: listId, 'owner._id': user._id },
-      { $push: { images: image } },
-      { new: true }
-    );
+  public addImageToList(listId: string, image: string, user: ListUser): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user._id }, { $push: { images: image } }, { new: true });
   }
 
   /**
@@ -237,14 +190,8 @@ export class ListService {
    * @param listId
    * @returns DB response
    */
-  public deleteAllImagesFromList(
-    listId: string
-  ): Query<ListDocument, ListDocument> {
-    return this.listModel.findByIdAndUpdate(
-      { _id: listId },
-      { images: [] },
-      { new: true }
-    );
+  public deleteAllImagesFromList(listId: string): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate({ _id: listId }, { images: [] }, { new: true });
   }
 
   /**
@@ -253,10 +200,7 @@ export class ListService {
    * @param fields
    * @returns
    */
-  public modifyList(
-    listId: string,
-    fields: any
-  ): Query<ListDocument, ListDocument> {
+  public modifyList(listId: string, fields: any): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate({ _id: listId }, fields, {
       new: true
     });
@@ -268,16 +212,8 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public addFilesToList(
-    listId: string,
-    files: ListFile[],
-    user: ListUser
-  ): Query<ListDocument, ListDocument> {
-    return this.listModel.findByIdAndUpdate(
-      { _id: listId, 'owner._id': user._id },
-      { $push: { files: { $each: files } } },
-      { new: true }
-    );
+  public addFilesToList(listId: string, files: ListFile[], user: ListUser): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user._id }, { $push: { files: { $each: files } } }, { new: true });
   }
 
   /**
@@ -285,22 +221,26 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public async addInvoices(
-    list_id: string,
-    files: ListFile[],
-    user_id: Types.ObjectId
-  ): Promise<ListFile[]> {
-    files.map(async (file) => {
-      const invoice: Invoice = await this.invoiceService.addInvoiceFromFile(
-        file.file,
-        list_id,
-        user_id
-      );
-      const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
-      console.log('Invoice: ', resultInvoice);
-      file.invoice_id = resultInvoice._id;
-    });
+  public async addInvoicesFromFiles(list_id: string, files: ListFile[], user_id: Sch.Types.ObjectId): Promise<ListFile[]> {
+    const finalFiles: ListFile[] = await Promise.all(
+      files.map(async (file) => {
+        const invoice: Invoice = await this.invoiceService.invoiceFromFile(file.file, list_id, user_id);
+        const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
+        await this.addInvoiceToList(list_id, user_id, resultInvoice._id);
+        file.invoice_id = resultInvoice._id;
+        return file;
+      })
+    );
+    return finalFiles;
+  }
 
-    return files;
+  /**
+   * Add invoice to list
+   * @param listId
+   * @param invoice
+   * @returns DB response
+   */
+  public addInvoiceToList(listId: string, user_id: Sch.Types.ObjectId, invoice_id: Types.ObjectId): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user_id }, { $push: { invoices: invoice_id } }, { new: true });
   }
 }
