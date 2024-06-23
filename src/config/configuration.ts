@@ -1,4 +1,5 @@
 export default () => ({
+  logLevel: process.env.WS_LOG_LEVEL || 'error',
   port: parseInt(process.env.PORT, 10) || 3000,
   versionPrefix: process.env.WS_VERSION_PREFIX,
   corsOrigin: process.env.WS_CORS_ORIGIN,

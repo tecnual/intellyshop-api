@@ -16,11 +16,13 @@ export class ItemService {
     let prices: Price[];
     if (!item._id) {
       item._id = new Types.ObjectId();
-      if (item.barcode) oFFPrices = await this.openFFService.getProductPricesByBarcode(item.barcode);
-      prices = this.mapPricesFromOpenFF(oFFPrices.data.items, userId, []);
-      item.price = await this.getLastPrice(prices);
-      item.lastPriceUpdateDate = new Date();
-      item.prices = prices;
+      if (item.barcode) {
+        oFFPrices = await this.openFFService.getProductPricesByBarcode(item.barcode);
+        prices = this.mapPricesFromOpenFF(oFFPrices.data.items, userId, []);
+        item.price = await this.getLastPrice(prices);
+        item.lastPriceUpdateDate = new Date();
+        item.prices = prices;
+      }
     }
     return this.itemModel.findByIdAndUpdate(item._id, item, {
       upsert: true,

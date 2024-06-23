@@ -27,7 +27,7 @@ export class UserController {
       response = new DefaultResponse(savedUser);
       status = HttpStatus.OK;
     } catch (e) {
-      this.logger.error('Error: ', e);
+      this.logger.error(e.errorResponse.errmsg);
       switch (e.code) {
         case 11000: {
           const error: ErrorResponse = {

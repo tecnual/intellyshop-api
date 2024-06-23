@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Put, Req, Res, UseGuards, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { AddListDto, ListFile } from './dto/add-list.dto';
@@ -12,7 +12,11 @@ import { ErrorResponse } from 'src/shared/models/error-response.interface';
 @UseGuards(JwtAuthGuard)
 @Controller('list')
 export class ListController {
-  constructor(private readonly listService: ListService) {}
+  path = '/list';
+  constructor(
+    private readonly listService: ListService,
+    private readonly logger: Logger
+  ) {}
 
   /**
    * Update a new list or generate a new one
@@ -48,6 +52,11 @@ export class ListController {
    */
   @Get()
   async getUserLists(@Req() req: Request): Promise<any[]> {
+    this.path = this.path + '';
+    this.logger.log(this.path, ListController.name);
+    this.logger.debug('getUserLists()', ListController.name);
+    this.logger.verbose('getUserLists()', ListController.name);
+    this.logger.warn('getUserLists()', ListController.name);
     return this.listService.getUserLists(req.user as ListUser);
   }
 

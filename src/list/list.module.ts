@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ListController } from './list.controller';
 import { ListService } from './list.service';
@@ -21,6 +21,6 @@ import { InvoiceSchemaProvider } from 'src/invoice/models/invoice.schema';
     })
   ],
   controllers: [ListController],
-  providers: [ListService, InvoiceService, ItemService, OpenFFService]
+  providers: [ListService, InvoiceService, ItemService, OpenFFService, Logger]
 })
 export class ListModule {}
