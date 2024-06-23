@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Invoice, InvoiceLine, UnitType } from './models/invoice.schema';
@@ -19,7 +19,8 @@ export class InvoiceService {
     @InjectModel(Invoice.name) private readonly invoiceModel: Model<Invoice>,
     @Inject(REQUEST) private readonly request: Request,
     private readonly itemService: ItemService,
-    private readonly openFFService: OpenFFService
+    private readonly openFFService: OpenFFService,
+    private readonly logger: Logger
   ) {}
 
   async getInvoiceById(invoiceId: string): Promise<Invoice> {
@@ -153,7 +154,6 @@ export class InvoiceService {
           unitType: UnitType.UNIT
         };
         if (item?._id) invoiceLine.item_id = new Types.ObjectId(item._id);
-        invoiceLines.push(invoiceLine);
       }
       if (line.length >= 5) {
         const priceArray = line[3].split(' ');
@@ -166,15 +166,34 @@ export class InvoiceService {
         };
 
         if (item?._id) invoiceLine.item_id = new Types.ObjectId(item._id);
-        invoiceLines.push(invoiceLine);
       }
+      const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
       if (item) {
+        this.logger.debug(item, 'Item');
         const itemId = item._id.toString();
         await this.itemService.patchItemPrice(itemId, invoiceLine.price);
         if (item.altNames.indexOf(invoiceLine.description) > -1) await this.itemService.addItemAltName(itemId, invoiceLine.description);
-        const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
         await this.itemService.addPriceToItem(item._id.toString(), price);
+        invoiceLine.item_id = item._id;
+      } else {
+        const newItem = new Item(
+          invoiceLine.description,
+          [invoiceLine.description],
+          null,
+          null,
+          null,
+          true,
+          user._id,
+          user._id,
+          invoiceLine.price,
+          [price],
+          new Date()
+        );
+        const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
+        this.logger.debug(resultItem, 'New Item');
+        invoiceLine.item_id = resultItem._id;
       }
+      invoiceLines.push(invoiceLine);
     }
     return invoiceLines;
   }

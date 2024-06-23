@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Controller, Get, Post, Req, UseGuards, Query, Patch, Param, Body, Res, Put } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards, Query, Patch, Param, Body, Res, Put, Logger } from '@nestjs/common';
 import { Item } from './item.schema';
 import { ItemService } from './item.service';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
@@ -12,7 +12,8 @@ import { DefaultResponse } from 'src/shared/models/default-response';
 export class ItemController {
   constructor(
     private readonly itemService: ItemService,
-    private readonly openFFService: OpenFFService
+    private readonly openFFService: OpenFFService,
+    private readonly logger: Logger
   ) {}
 
   @Post()
@@ -56,6 +57,7 @@ export class ItemController {
 
   @Get('/:itemId/prices')
   async getItemPrices(@Req() req: Request, @Param('itemId') itemId: string): Promise<Price[]> {
+    this.logger.verbose(itemId, 'itemId');
     let item: Item = await this.itemService.findOneById(itemId);
     const user = req.user as ListUser;
     const monthAgo: Date = new Date(new Date().setMonth(new Date().getMonth() - 1));

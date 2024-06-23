@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ItemController } from './item.controller';
 import { Item, ItemSchema } from './item.schema';
@@ -22,6 +22,6 @@ import { Invoice, InvoiceSchema } from 'src/invoice/models/invoice.schema';
     })
   ],
   controllers: [ItemController],
-  providers: [ItemService, OpenFFService, InvoiceService]
+  providers: [ItemService, OpenFFService, InvoiceService, Logger]
 })
 export class ItemModule {}
