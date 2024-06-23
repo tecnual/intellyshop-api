@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Query } from 'mongoose';
+import { Model, Query, Types } from 'mongoose';
 import { AddUserDto } from './dto/add-user.dto';
 import { User, UserDocument } from './user.schema';
 
@@ -14,6 +14,7 @@ export class UserService {
 
   add(addUserDto: AddUserDto): Promise<UserDocument> {
     const addedUser = new this.userModel(addUserDto);
+    addedUser._id = new Types.ObjectId();
     return addedUser.save();
   }
 
@@ -38,10 +39,6 @@ export class UserService {
    * updateConfirm
    */
   public updateConfirm(query: any): Query<UserDocument, UserDocument> {
-    return this.userModel.findOneAndUpdate(
-      query,
-      { confirmed: true },
-      { new: true }
-    );
+    return this.userModel.findOneAndUpdate(query, { confirmed: true }, { new: true });
   }
 }

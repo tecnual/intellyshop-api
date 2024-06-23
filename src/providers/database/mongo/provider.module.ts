@@ -39,10 +39,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         }
         //console.info('Mongo conexion: ', dbUrl);
         return {
-          //useCreateIndex: true,
-          //autoIndex: true,
-          //useFindAndModify: false,
-          //useNewUrlParser: true,
           uri: dbUrl,
           dbName: configService.get<string>('database.dbName')
         };

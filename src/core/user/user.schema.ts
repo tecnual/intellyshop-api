@@ -19,7 +19,7 @@ export class User {
   password?: string;
 
   @Prop({ type: String, required: true, unique: true })
-  email?: string;
+  email: string;
 
   @Prop()
   avatar?: ImageRef;

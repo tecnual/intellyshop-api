@@ -1,35 +1,40 @@
 //app.module.ts
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { MailService } from './mail.service';
 import { join } from 'path';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      useFactory: () => ({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
         transport: {
-          host: 'smtp.gmail.com',
-          port: 465,
-          secure: true, // upgrade later with STARTTLS
-          auth: {
-            user: "xxxxxxxxxxxx@xxxx.xxx",
-            pass: "xxxxxxx",
+          host: configService.get<string>('mailer.host'),
+          port: 587,
+          tls: {
+            rejectUnauthorized: false
           },
+          auth: {
+            user: configService.get<string>('mailer.user'),
+            pass: configService.get<string>('mailer.pass')
+          }
         },
         defaults: {
-          from: '"Tecnual" <info@tecnual.com>',
+          from: '"IntellyShop Team" <intellyshop@tecnual.com>'
         },
         template: {
           dir: join(__dirname, '../../mail/templates'),
-          adapter: new EjsAdapter(),
+          adapter: new HandlebarsAdapter(),
           options: {
-            strict: false,
-          },
-        },
+            strict: false
+          }
+        }
       }),
-    }),
+      inject: [ConfigService]
+    })
   ],
   providers: [MailService],
   exports: [MailService]
