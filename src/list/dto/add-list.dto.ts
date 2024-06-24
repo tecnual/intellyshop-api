@@ -3,6 +3,12 @@ import { Item } from 'src/item/item.schema';
 import { ListUser } from '../list.schema';
 import { Types } from 'mongoose';
 
+export enum FileType {
+  IMAGE = 'Image',
+  TICKET = 'Ticket',
+  CARD = 'Card',
+  OTHER = 'Other'
+}
 export class AddListDto {
   _id?: string;
   name: string;
@@ -31,13 +37,6 @@ export interface ListFile {
   invoice_id: Types.ObjectId;
   size: number;
   name: string;
-}
-
-export enum FileType {
-  IMAGE = 'Image',
-  TICKET = 'Ticket',
-  CARD = 'Card',
-  OTHER = 'Other'
 }
 
 export class ListItemDto {

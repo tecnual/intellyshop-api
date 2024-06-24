@@ -3,7 +3,10 @@ import { Invoice, InvoiceLine } from './models/invoice.schema';
 import { InvoiceService } from './invoice.service';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { DefaultResponse } from 'src/shared/models/default-response';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Invoice')
 @UseGuards(JwtAuthGuard)
 @Controller('invoice')
 export class InvoiceController {
@@ -25,7 +28,11 @@ export class InvoiceController {
     }
     //const invoiceLine = await this.openFFService.setInvoiceProductByBarcode(body.invoiceLine.barcode, body.invoiceLine);
   }
-
+  @ApiResponse({
+    status: 200,
+    description: 'Obtain invoice by Id',
+    type: Invoice
+  })
   @Get('/:invoiceId')
   async getInvoice(@Param('invoiceId') invoiceId: string): Promise<Invoice> {
     return this.invoiceService.getInvoiceById(invoiceId);

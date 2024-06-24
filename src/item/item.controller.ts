@@ -7,6 +7,8 @@ import { OpenFFService } from 'src/shared/openFF/openFF.Service';
 import { ListUser } from 'src/list/list.schema';
 import { Price } from './price.schema';
 import { DefaultResponse } from 'src/shared/models/default-response';
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('Item')
 @UseGuards(JwtAuthGuard)
 @Controller('item')
 export class ItemController {

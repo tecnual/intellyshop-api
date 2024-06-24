@@ -8,7 +8,9 @@ import { Request, Response } from 'express';
 import { DefaultResponse } from 'src/shared/models/default-response';
 import { ModifyListRequest } from 'src/model/rest/modify-list.request';
 import { ErrorResponse } from 'src/shared/models/error-response.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('List')
 @UseGuards(JwtAuthGuard)
 @Controller('list')
 export class ListController {

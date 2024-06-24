@@ -6,7 +6,9 @@ import { Response } from 'express';
 import { ErrorResponse } from 'src/shared/models/error-response.interface';
 import { DefaultResponse } from 'src/shared/models/default-response';
 import { UserService } from '../user/user.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(

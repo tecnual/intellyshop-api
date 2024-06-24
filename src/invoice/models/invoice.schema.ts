@@ -1,7 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument, Schema as Sch, Types } from 'mongoose';
 
 export type InvoiceDocument = HydratedDocument<Invoice>;
+
+export enum UnitType {
+  UNIT = 'u',
+  KG = 'Kg',
+  G = 'g',
+  L = 'L',
+  PACK = 'Pack'
+}
 
 @Schema({
   timestamps: { createdAt: true, updatedAt: true }
@@ -60,6 +69,7 @@ export class InvoiceLine {
   price: number;
 
   @Prop()
+  @ApiProperty({ enum: UnitType, enumName: 'UnitType' })
   unitType: UnitType;
 
   @Prop({ required: false })
@@ -67,14 +77,6 @@ export class InvoiceLine {
 
   @Prop({ type: Types.ObjectId, ref: 'Item', required: false })
   item_id?;
-}
-
-export enum UnitType {
-  UNIT = 'u',
-  KG = 'Kg',
-  G = 'g',
-  L = 'L',
-  PACK = 'Pack'
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);
