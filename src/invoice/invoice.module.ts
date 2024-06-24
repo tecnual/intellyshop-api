@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Invoice, InvoiceSchema } from './models/invoice.schema';
 import { InvoiceService } from './invoice.service';
@@ -21,7 +21,7 @@ import { HttpModule } from '@nestjs/axios';
       })
     })
   ],
-  providers: [InvoiceService, ItemService, OpenFFService],
+  providers: [InvoiceService, ItemService, OpenFFService, Logger],
   controllers: [InvoiceController]
 })
 export class InvoiceModule {}

@@ -12,7 +12,6 @@ import { ErrorResponse } from 'src/shared/models/error-response.interface';
 @UseGuards(JwtAuthGuard)
 @Controller('list')
 export class ListController {
-  path = '/list';
   constructor(
     private readonly listService: ListService,
     private readonly logger: Logger
@@ -52,11 +51,7 @@ export class ListController {
    */
   @Get()
   async getUserLists(@Req() req: Request): Promise<any[]> {
-    this.path = this.path + '';
-    this.logger.log(this.path, ListController.name);
-    this.logger.debug('getUserLists()', ListController.name);
-    this.logger.verbose('getUserLists()', ListController.name);
-    this.logger.warn('getUserLists()', ListController.name);
+    this.logger.verbose(req.user, 'getUserLists User');
     return this.listService.getUserLists(req.user as ListUser);
   }
 
@@ -192,14 +187,23 @@ export class ListController {
    * Add files to list
    */
   @Post('/:listId/file')
-  public async addFileTolist(@Param('listId') listId: string, @Body() body: ListFile[], @Req() req: Request, @Res() res: Response) {
+  public async addFileTolist(@Param('listId') listId: string, @Body() body: ListFile, @Req() req: Request, @Res() res: Response) {
+    this.logger.verbose(body.invoice_id, 'InvoiceId');
     try {
       const user = req.user as ListUser;
-      const files = await this.listService.addInvoicesFromFiles(listId, body, user._id);
-      const data: ListDocument = await this.listService.addFilesToList(listId, files, req.user as ListUser);
-      return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
+      const file = await this.listService.addInvoiceFromFile(listId, body, user._id);
+      if (!file) {
+        return res
+          .status(HttpStatus.CONFLICT)
+          .send(
+            new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001409', message: 'La factura ya existe en nuestra base de datos' }])
+          );
+      } else {
+        const data: ListDocument = await this.listService.addFileToList(listId, file as ListFile, req.user as ListUser);
+        return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
+      }
     } catch (e) {
-      console.error('Error', e);
+      this.logger.error('Error', e);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send(new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001500', message: 'Se ha producido un error inesperado:' }]));

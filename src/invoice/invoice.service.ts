@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Invoice, InvoiceLine, UnitType } from './models/invoice.schema';
@@ -19,11 +19,16 @@ export class InvoiceService {
     @InjectModel(Invoice.name) private readonly invoiceModel: Model<Invoice>,
     @Inject(REQUEST) private readonly request: Request,
     private readonly itemService: ItemService,
-    private readonly openFFService: OpenFFService
+    private readonly openFFService: OpenFFService,
+    private readonly logger: Logger
   ) {}
 
   async getInvoiceById(invoiceId: string): Promise<Invoice> {
     return await this.invoiceModel.findById(new Types.ObjectId(invoiceId)).populate({ path: 'lines.item_id', model: 'Item' });
+  }
+
+  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice> {
+    return await this.invoiceModel.findOne({ number: invoiceNumber });
   }
 
   async setInvoiceLine(invoice: Invoice, invoiceLineReq: InvoiceLineDTO): Promise<InvoiceLine> {
@@ -61,7 +66,7 @@ export class InvoiceService {
           );
         })
         .catch((error) => {
-          console.error('Error en producto: ', error);
+          this.logger.warn(error, 'Product not found: ');
           const newPrices: Price[] = [];
           newPrices.push(new Price(invoiceLineReq.price, userId, Source.INVOICE, 'EUR', invoice.date, null, invoice._id));
           item = new Item(
@@ -78,6 +83,11 @@ export class InvoiceService {
             new Date()
           );
         });
+      if (invoiceLineReq.item_id) {
+        item._id = invoiceLineReq.item_id;
+        //item.barcode = invoiceLineReq.barcode;
+        item.altNames = await this.mergeArrays(item.altNames, invoiceLineReq.item_id.altNames);
+      }
       itemResult = await this.itemService.setItem(item as ItemDocument, user._id);
     } else {
       const prices: Price[] = [];
@@ -118,6 +128,7 @@ export class InvoiceService {
     const ticketDate = ticketDateArray[0].split('/');
     const ticketHour = ticketDateArray[1].split(':');
     const invoiceNumber = data[5][0].split(': ')[1];
+
     const date = new Date(ticketDate[2], ticketDate[1] - 1, ticketDate[0], ticketHour[0], ticketHour[1]);
     let total = 0;
     let totalLineNumber = 0;
@@ -153,7 +164,6 @@ export class InvoiceService {
           unitType: UnitType.UNIT
         };
         if (item?._id) invoiceLine.item_id = new Types.ObjectId(item._id);
-        invoiceLines.push(invoiceLine);
       }
       if (line.length >= 5) {
         const priceArray = line[3].split(' ');
@@ -165,16 +175,36 @@ export class InvoiceService {
           unitType: priceArray[1].split('/')[1]
         };
 
-        if (item?._id) invoiceLine.item_id = new Types.ObjectId(item._id);
-        invoiceLines.push(invoiceLine);
+        if (item?._id) {
+          invoiceLine.item_id = new Types.ObjectId(item._id);
+        }
       }
+      const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
       if (item) {
         const itemId = item._id.toString();
         await this.itemService.patchItemPrice(itemId, invoiceLine.price);
         if (item.altNames.indexOf(invoiceLine.description) > -1) await this.itemService.addItemAltName(itemId, invoiceLine.description);
-        const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
         await this.itemService.addPriceToItem(item._id.toString(), price);
+        invoiceLine.item_id = item._id;
+        invoiceLine.barcode = item.barcode;
+      } else {
+        const newItem = new Item(
+          invoiceLine.description,
+          [invoiceLine.description],
+          null,
+          null,
+          null,
+          true,
+          user._id,
+          user._id,
+          invoiceLine.price,
+          [price],
+          new Date()
+        );
+        const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
+        invoiceLine.item_id = resultItem._id;
       }
+      invoiceLines.push(invoiceLine);
     }
     return invoiceLines;
   }
@@ -189,12 +219,12 @@ export class InvoiceService {
   }
 
   public async updateInvoiceLine(invoiceLine: InvoiceLineDTO, itemId: Types.ObjectId) {
-    const invoiceId = new Types.ObjectId(invoiceLine._id);
+    const invoiceLineId = new Types.ObjectId(invoiceLine._id);
     const lineItemId = new Types.ObjectId(itemId);
     return this.invoiceModel
       .findOneAndUpdate(
-        { 'lines._id': invoiceId },
-        { $set: { 'lines.$.item_id': lineItemId } },
+        { 'lines._id': invoiceLineId },
+        { $set: { 'lines.$.item_id': lineItemId, 'lines.$.barcode': invoiceLine.barcode } },
         {
           upsert: false,
           new: true
@@ -202,5 +232,16 @@ export class InvoiceService {
       )
       .populate({ path: 'lines.item_id', model: 'Item' })
       .exec();
+  }
+
+  async mergeArrays(source: any[], arrayToMerge: any[]) {
+    const mergedArray: any[] = [];
+    source.map((elem) => {
+      const result = arrayToMerge.some((i) => {
+        return i === elem;
+      });
+      if (!result) mergedArray.push(elem);
+    });
+    return [...arrayToMerge, ...mergedArray];
   }
 }

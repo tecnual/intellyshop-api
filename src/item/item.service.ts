@@ -57,7 +57,7 @@ export class ItemService {
   }
 
   async addItemAltName(_id: string, name: string): Promise<any> {
-    return this.itemModel.findOneAndUpdate({ _id }, { $push: { altNames: name } });
+    return this.itemModel.findOneAndUpdate({ _id }, { $addToSet: { altNames: name } });
   }
 
   async addPriceToItem(itemId: string, price: Price): Promise<any> {
