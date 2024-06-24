@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Query, Schema as Sch, Types } from 'mongoose';
 import { from, Observable } from 'rxjs';
@@ -14,7 +14,8 @@ export class ListService {
     @InjectModel(List.name) private readonly listModel: Model<List>,
     @InjectModel(SavedList.name)
     private readonly savedListModel: Model<SavedList>,
-    private readonly invoiceService: InvoiceService
+    private readonly invoiceService: InvoiceService,
+    private readonly logger: Logger
   ) {}
 
   async upsert(listToAdd: AddListDto, user: ListUser): Promise<any> {
@@ -212,8 +213,8 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public addFilesToList(listId: string, files: ListFile[], user: ListUser): Query<ListDocument, ListDocument> {
-    return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user._id }, { $push: { files: { $each: files } } }, { new: true });
+  public addFileToList(listId: string, file: ListFile, user: ListUser): Query<ListDocument, ListDocument> {
+    return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user._id }, { $push: { files: file } }, { new: true });
   }
 
   /**
@@ -221,17 +222,17 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public async addInvoicesFromFiles(list_id: string, files: ListFile[], user_id: Sch.Types.ObjectId): Promise<ListFile[]> {
-    const finalFiles: ListFile[] = await Promise.all(
-      files.map(async (file) => {
-        const invoice: Invoice = await this.invoiceService.invoiceFromFile(file.file, list_id, user_id);
-        const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
-        await this.addInvoiceToList(list_id, user_id, resultInvoice._id);
-        file.invoice_id = resultInvoice._id;
-        return file;
-      })
-    );
-    return finalFiles;
+  public async addInvoiceFromFile(list_id: string, file: ListFile, user_id: Sch.Types.ObjectId): Promise<ListFile | boolean> {
+    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file.file, list_id, user_id);
+    const invoiceFound = await this.invoiceService.getInvoiceByNumber(invoice.number);
+    if (invoiceFound) {
+      return false;
+    } else {
+      const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
+      await this.addInvoiceToList(list_id, user_id, resultInvoice._id);
+      file.invoice_id = resultInvoice._id;
+      return file;
+    }
   }
 
   /**

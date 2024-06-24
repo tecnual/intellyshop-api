@@ -47,6 +47,7 @@ export class ItemController {
 
   @Get('/:itemId')
   async getItemById(@Res() res, @Param('itemId') itemId: string): Promise<Item[] | Item> {
+    this.logger.verbose(itemId, 'ItemId');
     const item = await this.itemService.findOneById(itemId);
     if (item) {
       return res.status(200).send(new DefaultResponse<Item>(item));
