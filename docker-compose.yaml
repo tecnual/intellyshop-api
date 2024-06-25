@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   api:
-    image: shopitify-api:latest
+    image: intellyshop-api:latest
     restart: always
     volumes:
       - .:/app
