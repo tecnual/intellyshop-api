@@ -12,6 +12,12 @@ export enum UnitType {
   PACK = 'Pack'
 }
 
+export enum InvoiceType {
+  GENERIC = 'Generic Invoice',
+  MERCADONA = 'Mercadona',
+  ALIMERKA = 'Alimerka'
+}
+
 @Schema({
   timestamps: { createdAt: true, updatedAt: true }
 })
@@ -40,7 +46,10 @@ export class Invoice {
   @Prop({ type: Sch.Types.ObjectId, ref: 'User' })
   user_id;
 
-  constructor(number, lines, currency, total, date, list_id, user_id, invoiceId?) {
+  @Prop()
+  invoiceType: InvoiceType;
+
+  constructor(number, lines, currency, total, date, list_id, user_id, invoiceId?, invoiceType?: InvoiceType) {
     this._id = invoiceId ? invoiceId : new Types.ObjectId();
     this.number = number;
     this.lines = lines;
@@ -49,6 +58,7 @@ export class Invoice {
     this.date = date;
     this.list_id = list_id;
     this.user_id = user_id;
+    this.invoiceType = invoiceType ? invoiceType : InvoiceType.GENERIC;
   }
 }
 

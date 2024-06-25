@@ -205,7 +205,7 @@ export class ListController {
         return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
       }
     } catch (e) {
-      this.logger.error('Error', e);
+      this.logger.error(e, 'addFileTolist', e);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send(new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001500', message: 'Se ha producido un error inesperado:' }]));
