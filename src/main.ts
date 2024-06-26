@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
 import * as morgan from 'morgan';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
+import { ErrorInterceptor } from './core/interceptors/error/error.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new ErrorInterceptor());
   morgan.token('user-name', function (req) {
     let username = 'no-user';
     if (req.user) username = req.user.name;

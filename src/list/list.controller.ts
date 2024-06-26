@@ -75,27 +75,18 @@ export class ListController {
   @Patch('/:listId')
   public async modifyList(@Param('listId') listId: string, @Body() body: ModifyListRequest): Promise<DefaultResponse<any>> {
     // TODO: poner el tipo correcto
-    let response = new DefaultResponse<null>(null);
-    try {
-      const listModified = await this.listService.modifyList(listId, body);
-      if (body.saved) {
-        const newList = new AddListDto();
-        newList.name = listModified.name;
-        newList.owner = listModified.owner;
-        newList.sharedUsers = listModified.sharedUsers;
-        newList.store = listModified.store;
-        newList.description = listModified.description;
-        response = new DefaultResponse<any>({
-          listModified,
-          newList: await this.listService.upsert(newList, listModified.owner)
-        });
-      }
-    } catch (e) {
-      console.error('error', e);
-      const errors: ErrorResponse[] = [{ code: '1', message: 'Error: ' + e }];
-      return new DefaultResponse<any>(null, errors);
-    } finally {
-      return response;
+    const listModified = await this.listService.modifyList(listId, body);
+    if (body.saved) {
+      const newList = new AddListDto();
+      newList.name = listModified.name;
+      newList.owner = listModified.owner;
+      newList.sharedUsers = listModified.sharedUsers;
+      newList.store = listModified.store;
+      newList.description = listModified.description;
+      return new DefaultResponse<any>({
+        listModified,
+        newList: await this.listService.upsert(newList, listModified.owner)
+      });
     }
   }
 
@@ -164,12 +155,8 @@ export class ListController {
    */
   @Post('/:listId/image')
   public async addImageTolist(@Param('listId') listId: string, @Body() body: any, @Req() req: Request): Promise<DefaultResponse<any>> {
-    try {
-      const data = await this.listService.addImageToList(listId, body.image, req.user as ListUser);
-      return new DefaultResponse<List>(data);
-    } catch (e) {
-      return new DefaultResponse<ErrorResponse>(null, e);
-    }
+    const data = await this.listService.addImageToList(listId, body.image, req.user as ListUser);
+    return new DefaultResponse<List>(data);
   }
 
   /**
@@ -177,12 +164,8 @@ export class ListController {
    */
   @Delete('/:listId/image')
   public async deleteAllImages(@Param('listId') listId: string) {
-    try {
-      const data = await this.listService.deleteAllImagesFromList(listId);
-      return new DefaultResponse<List>(data);
-    } catch (e) {
-      return new DefaultResponse<ErrorResponse>(null, e);
-    }
+    const data = await this.listService.deleteAllImagesFromList(listId);
+    return new DefaultResponse<List>(data);
   }
 
   /**
@@ -191,24 +174,15 @@ export class ListController {
   @Post('/:listId/file')
   public async addFileTolist(@Param('listId') listId: string, @Body() body: ListFile, @Req() req: Request, @Res() res: Response) {
     this.logger.verbose(body.invoice_id, 'InvoiceId');
-    try {
-      const user = req.user as ListUser;
-      const file = await this.listService.addInvoiceFromFile(listId, body, user._id);
-      if (!file) {
-        return res
-          .status(HttpStatus.CONFLICT)
-          .send(
-            new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001409', message: 'La factura ya existe en nuestra base de datos' }])
-          );
-      } else {
-        const data: ListDocument = await this.listService.addFileToList(listId, file as ListFile, req.user as ListUser);
-        return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
-      }
-    } catch (e) {
-      this.logger.error(e, 'addFileTolist', e);
+    const user = req.user as ListUser;
+    const file = await this.listService.addInvoiceFromFile(listId, body, user._id);
+    if (!file) {
       return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .send(new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001500', message: 'Se ha producido un error inesperado:' }]));
+        .status(HttpStatus.CONFLICT)
+        .send(new DefaultResponse<ErrorResponse>(null, [{ code: 'IS0001409', message: 'La factura ya existe en nuestra base de datos' }]));
+    } else {
+      const data: ListDocument = await this.listService.addFileToList(listId, file as ListFile, req.user as ListUser);
+      return res.status(HttpStatus.OK).send(new DefaultResponse<List>(data));
     }
   }
 }
