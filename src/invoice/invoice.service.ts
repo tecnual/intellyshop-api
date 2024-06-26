@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Invoice, InvoiceLine, UnitType } from './models/invoice.schema';
+import { Invoice, InvoiceLine, InvoiceType, UnitType } from './models/invoice.schema';
 
 import * as pdf2table from 'pdf2table';
 import { InvoiceLineDTO } from './models/invoice-line.dto';
@@ -119,35 +119,38 @@ export class InvoiceService {
     });
   }
 
+  getInvoiceType(data: any): InvoiceType {
+    if (data[0][0] === 'ALIMERKA S.A.U.') {
+      return InvoiceType.ALIMERKA;
+    }
+    const mercadonaName = data[0][0].split('  ')[0];
+    if (mercadonaName === 'MERCADONA, S.A.') {
+      return InvoiceType.MERCADONA;
+    }
+    return InvoiceType.GENERIC;
+  }
+
   async getInvoiceFromData(data, list_id, user_id): Promise<Invoice> {
     // const store = data[0][0].split('  ');
     // const storeName = store[0];
     // const storeCIF = store[1];
     // const storeAddress = data[1];
-    const ticketDateArray = data[4][0].split(' ');
-    const ticketDate = ticketDateArray[0].split('/');
-    const ticketHour = ticketDateArray[1].split(':');
-    const invoiceNumber = data[5][0].split(': ')[1];
-
-    const date = new Date(ticketDate[2], ticketDate[1] - 1, ticketDate[0], ticketHour[0], ticketHour[1]);
-    let total = 0;
-    let totalLineNumber = 0;
-    let count = 0;
-
-    data.map((elem) => {
-      count++;
-      if (elem[0] === 'TOTAL (€)') {
-        total = elem[1].replace(',', '.') as number;
-        totalLineNumber = count;
+    // this.logger.debug(data, 'Data');
+    const invoiceType = this.getInvoiceType(data);
+    switch (invoiceType) {
+      case InvoiceType.MERCADONA: {
+        return await this.parseDataFromMercadona(data, list_id, user_id);
       }
-    });
-    const invoiceId = new Types.ObjectId();
-    const lines = await this.getInvoiceLines(data, totalLineNumber, date, invoiceId);
-    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId);
-    return invoice;
+      case InvoiceType.ALIMERKA: {
+        return await this.parseDataFromAlimerka(data, list_id, user_id);
+      }
+      default: {
+        return null;
+      }
+    }
   }
 
-  async getInvoiceLines(data, totalLineNumber, date: Date, invoiceId) {
+  async getInvoiceLinesFromMercadona(data, totalLineNumber, date: Date, invoiceId) {
     const user = this.request.user as UserDocument;
     const invoiceLines: InvoiceLine[] = [];
 
@@ -243,5 +246,98 @@ export class InvoiceService {
       if (!result) mergedArray.push(elem);
     });
     return [...arrayToMerge, ...mergedArray];
+  }
+
+  async parseDataFromMercadona(data, list_id, user_id): Promise<Invoice> {
+    const ticketDateArray = data[4][0].split(' ');
+    const ticketDate = ticketDateArray[0].split('/');
+    const ticketHour = ticketDateArray[1].split(':');
+    const invoiceNumber = data[5][0].split(': ')[1];
+
+    const date = new Date(ticketDate[2], ticketDate[1] - 1, ticketDate[0], ticketHour[0], ticketHour[1]);
+    let total = 0;
+    let totalLineNumber = 0;
+    let count = 0;
+
+    data.map((elem) => {
+      count++;
+      if (elem[0] === 'TOTAL (€)') {
+        total = elem[1].replace(',', '.') as number;
+        totalLineNumber = count;
+      }
+    });
+
+    const invoiceId = new Types.ObjectId();
+    const lines = await this.getInvoiceLinesFromMercadona(data, totalLineNumber, date, invoiceId);
+    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.MERCADONA);
+    return invoice;
+  }
+
+  async parseDataFromAlimerka(data, list_id, user_id): Promise<Invoice> {
+    // TODO: Check several pages
+    const ticketDateArray = data[0][2].split('/');
+    const invoiceNumber = data[7][0];
+    const date = new Date(ticketDateArray[2], ticketDateArray[1] - 1, ticketDateArray[0]);
+    const invoiceId = new Types.ObjectId();
+    const lines = await this.getInvoiceLinesFromAlimerka(data, date, invoiceId);
+    const totalField = data.find((line) => line[1] === 'PAGO CONTADO');
+    const total = totalField[0].replace(',', '.') as number;
+
+    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.ALIMERKA);
+    return invoice;
+  }
+
+  async getInvoiceLinesFromAlimerka(data, date: Date, invoiceId) {
+    const lines = data.filter((line) => line.length === 9 && line[0] !== 'Código de ' && line[0] !== 'artículo');
+    const user = this.request.user as UserDocument;
+    const invoiceLines: InvoiceLine[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const item = await this.itemService.findOneByName(line[1]);
+
+      let unitType = UnitType.UNIT;
+      if (line[3] === 'UN') unitType = UnitType.UNIT;
+      if (line[3] === 'KG') unitType = UnitType.KG;
+      const invoiceLine: InvoiceLine = {
+        _id: new Types.ObjectId(),
+        quantity: line[2].replace(',', '.') as number,
+        description: line[1],
+        price: line[4].replace(',', '.') as number,
+        unitType
+      };
+
+      if (item?._id) {
+        invoiceLine.item_id = new Types.ObjectId(item._id);
+      }
+
+      const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
+      if (item) {
+        const itemId = item._id.toString();
+        await this.itemService.patchItemPrice(itemId, invoiceLine.price);
+        if (item.altNames.indexOf(invoiceLine.description) > -1) await this.itemService.addItemAltName(itemId, invoiceLine.description);
+        await this.itemService.addPriceToItem(item._id.toString(), price);
+        invoiceLine.item_id = item._id;
+        invoiceLine.barcode = item.barcode;
+      } else {
+        const newItem = new Item(
+          invoiceLine.description,
+          [invoiceLine.description],
+          null,
+          null,
+          null,
+          true,
+          user._id,
+          user._id,
+          invoiceLine.price,
+          [price],
+          new Date()
+        );
+        const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
+        invoiceLine.item_id = resultItem._id;
+        await this.itemService.addPriceToItem(resultItem._id.toString(), price);
+      }
+      invoiceLines.push(invoiceLine);
+    }
+    return invoiceLines;
   }
 }
