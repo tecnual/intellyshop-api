@@ -135,7 +135,7 @@ export class InvoiceService {
     // const storeName = store[0];
     // const storeCIF = store[1];
     // const storeAddress = data[1];
-    this.logger.debug(data, 'Data');
+    // this.logger.debug(data, 'Data');
     const invoiceType = this.getInvoiceType(data);
     switch (invoiceType) {
       case InvoiceType.MERCADONA: {
@@ -266,6 +266,7 @@ export class InvoiceService {
         totalLineNumber = count;
       }
     });
+
     const invoiceId = new Types.ObjectId();
     const lines = await this.getInvoiceLinesFromMercadona(data, totalLineNumber, date, invoiceId);
     const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.MERCADONA);
@@ -273,40 +274,27 @@ export class InvoiceService {
   }
 
   async parseDataFromAlimerka(data, list_id, user_id): Promise<Invoice> {
+    // TODO: Check several pages
     const ticketDateArray = data[0][2].split('/');
     const invoiceNumber = data[7][0];
-    this.logger.debug(invoiceNumber, 'invoiceNumber');
-
     const date = new Date(ticketDateArray[2], ticketDateArray[1] - 1, ticketDateArray[0]);
-    this.logger.debug(date, 'Date');
-
-    const numPages = data[8][2] as number;
-    this.logger.debug(numPages, 'numPages');
-
     const invoiceId = new Types.ObjectId();
     const lines = await this.getInvoiceLinesFromAlimerka(data, date, invoiceId);
-    this.logger.debug(lines, 'lines');
     const totalField = data.find((line) => line[1] === 'PAGO CONTADO');
     const total = totalField[0].replace(',', '.') as number;
 
-    this.logger.debug(total, 'Total');
-    //const lines = await this.getInvoiceLinesFromMercadona(data, 8, date, invoiceId);
     const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.ALIMERKA);
     return invoice;
   }
 
   async getInvoiceLinesFromAlimerka(data, date: Date, invoiceId) {
-    const STARTING_LINE = 31;
-    const totalLines = data.length - STARTING_LINE - 1;
-    this.logger.debug(totalLines, 'totalLines');
     const lines = data.filter((line) => line.length === 9 && line[0] !== 'Código de ' && line[0] !== 'artículo');
-    this.logger.debug(lines, 'lines = 9');
     const user = this.request.user as UserDocument;
     const invoiceLines: InvoiceLine[] = [];
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const item = await this.itemService.findOneByName(line[1]);
-      //let invoiceLine: InvoiceLine;
+
       let unitType = UnitType.UNIT;
       if (line[3] === 'UN') unitType = UnitType.UNIT;
       if (line[3] === 'KG') unitType = UnitType.KG;
