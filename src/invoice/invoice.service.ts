@@ -12,6 +12,8 @@ import { ItemService } from 'src/item/item.service';
 import { OpenFFService } from 'src/shared/openFF/openFF.Service';
 import { Item, ItemDocument } from 'src/item/item.schema';
 import { Price, Source } from 'src/item/price.schema';
+import { ListFile } from 'src/list/dto/add-list.dto';
+import { createWorker } from 'tesseract.js';
 
 @Injectable()
 export class InvoiceService {
@@ -106,8 +108,14 @@ export class InvoiceService {
     return newInvoice.save();
   }
 
-  async invoiceFromFile(base64File, list_id, user_id): Promise<Invoice> {
-    const data = await this.getDataFromFile(base64File);
+  async invoiceFromFile(file: ListFile, list_id, user_id): Promise<Invoice> {
+    let data;
+    if (file.mimeType.includes('image')) {
+      data = await this.getDataFromImage(file.file);
+    } else {
+      data = await this.getDataFromFile(file.file);
+    }
+
     return await this.getInvoiceFromData(data, list_id, user_id);
   }
 
@@ -119,6 +127,25 @@ export class InvoiceService {
     });
   }
 
+  async getDataFromImage(base64Image): Promise<Invoice> {
+    // this.logger.debug(base64Image, 'base64Image');
+    let data;
+    try {
+      const worker = await createWorker('spa');
+      await worker.setParameters({
+        preserve_interword_spaces: '1'
+      });
+      const {
+        data: { text }
+      } = await worker.recognize(base64Image);
+      data = text.split('\n');
+      worker.terminate();
+    } catch (error) {
+      this.logger.error(error);
+    }
+    return data;
+  }
+
   getInvoiceType(data: any): InvoiceType {
     if (data[0][0] === 'ALIMERKA S.A.U.') {
       return InvoiceType.ALIMERKA;
@@ -126,6 +153,9 @@ export class InvoiceService {
     const mercadonaName = data[0][0].split('  ')[0];
     if (mercadonaName === 'MERCADONA, S.A.') {
       return InvoiceType.MERCADONA;
+    }
+    if (data[1] === 'LIDL SUPERMERCADOS S.A.U') {
+      return InvoiceType.LIDL;
     }
     return InvoiceType.GENERIC;
   }
@@ -143,6 +173,9 @@ export class InvoiceService {
       }
       case InvoiceType.ALIMERKA: {
         return await this.parseDataFromAlimerka(data, list_id, user_id);
+      }
+      case InvoiceType.LIDL: {
+        return await this.parseDataFromLidl(data, list_id, user_id);
       }
       default: {
         return null;
@@ -334,10 +367,148 @@ export class InvoiceService {
         );
         const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
         invoiceLine.item_id = resultItem._id;
-        await this.itemService.addPriceToItem(resultItem._id.toString(), price);
       }
       invoiceLines.push(invoiceLine);
     }
+    return invoiceLines;
+  }
+
+  async parseDataFromLidl(data, list_id, user_id): Promise<Invoice> {
+    // TODO: Check several pages
+    //const ticketDate = ticketDateArray[0].split('/');
+    this.logger.debug(data, 'Line text');
+    const totalLine = data.find((line) => line.startsWith('Total'));
+    const endLinesNumber = data.indexOf(totalLine);
+    this.logger.debug(totalLine, 'totalLine');
+    this.logger.debug(endLinesNumber, 'endLinesNumber');
+    const totalField = totalLine.split(' ');
+    const total = parseFloat(totalField[totalField.length - 1].replace(',', '.'));
+    this.logger.debug(total, 'total');
+    const ticketDateArray = data[endLinesNumber + 6].split(' ')[0].split('/');
+
+    const invoiceField = data
+      .find((l, i) => {
+        return data[i + 1]?.includes('Devoluciones art');
+      })
+      .split('  ');
+    const invoiceNumber = invoiceField[1];
+    this.logger.debug(invoiceNumber, 'invoiceNumber');
+
+    const date = new Date(ticketDateArray[2], ticketDateArray[1] - 1, ticketDateArray[0]);
+    this.logger.debug(date, 'date');
+    const invoiceId = new Types.ObjectId();
+    const lines = await this.getInvoiceLinesFromLidl(data, date, endLinesNumber, invoiceId);
+
+    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.ALIMERKA);
+    return invoice;
+  }
+
+  async getInvoiceLinesFromLidl(data, date: Date, endLinesNumber: number, invoiceId) {
+    //const lines = data.filter((line, index) => index > 5 && index < endLinesNumber);
+    const lines = [];
+    data.map((l, i) => {
+      if (i > 5 && i < endLinesNumber) {
+        const line = l.split('  ').filter((elem) => elem !== '');
+        if (!line[0].includes('Dto. Lidl') && !line[0].includes('EUR/kg')) {
+          let discount: number = 0;
+
+          if (data[i + 1].includes('Dto. Lidl')) {
+            const discountLine = data[i + 1].split('  ');
+            discount = parseFloat(discountLine[discountLine.length - 1].replace(',', '.'));
+          }
+          let price: number = 0;
+          let descriptionLine = '';
+          let quantity = 0;
+          let unitType = UnitType.UNIT;
+
+          if (data[i + 1].includes('EUR/kg')) {
+            unitType = UnitType.KG;
+            const lineField = data[i + 1].split(' ');
+            quantity = parseFloat(lineField[0].replace(',', '.'));
+            price = parseFloat(lineField[3].replace(',', '.'));
+            descriptionLine = line[0];
+          } else {
+            if (line.length === 2) {
+              price = parseFloat(line[line.length - 1].replace(',', '.'));
+              //lines.push([line[0], 1, price]);
+              descriptionLine = line[0];
+              quantity = 1;
+            } else {
+              const descriptionField = line[0].split(' ');
+              const priceField = descriptionField[descriptionField.length - 1];
+              price = parseFloat(priceField.replace(',', '.').replace('$', ''));
+              descriptionLine = line[0].replace(' ' + priceField, '');
+              quantity = parseInt(line[line.length - 2]);
+            }
+          }
+          const descriptionField = descriptionLine.split('/');
+          let description = '';
+          let brand = '';
+          if (descriptionField.length > 1) {
+            description = descriptionField[1];
+            brand = descriptionField[0];
+          } else {
+            description = descriptionField[0];
+            brand = '';
+          }
+          //const description = descriptionField.length > 1 ? descriptionField[1] : descriptionField[0];
+          price = price + discount;
+          lines.push({ description, quantity, price, unitType, discount, brand });
+        }
+      }
+    });
+    this.logger.debug(lines, 'lines');
+
+    const user = this.request.user as UserDocument;
+    const invoiceLines: InvoiceLine[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      const item = await this.itemService.findOneByName(line.description);
+
+      const invoiceLine: InvoiceLine = {
+        _id: new Types.ObjectId(),
+        quantity: line.quantity,
+        description: line.description,
+        price: line.price,
+        unitType: line.unitType
+      };
+
+      if (item?._id) {
+        invoiceLine.item_id = new Types.ObjectId(item._id);
+      }
+
+      const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
+      if (item) {
+        const itemId = item._id.toString();
+        await this.itemService.patchItemPrice(itemId, invoiceLine.price);
+        if (item.altNames.indexOf(invoiceLine.description) > -1) await this.itemService.addItemAltName(itemId, invoiceLine.description);
+        await this.itemService.addPriceToItem(item._id.toString(), price);
+        invoiceLine.item_id = item._id;
+        invoiceLine.barcode = item.barcode;
+      } else {
+        const newItem = new Item(
+          invoiceLine.description,
+          [invoiceLine.description],
+          null,
+          null,
+          null,
+          true,
+          user._id,
+          user._id,
+          invoiceLine.price,
+          [price],
+          new Date(),
+          line.brand
+        );
+        const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
+        invoiceLine.item_id = resultItem._id;
+      }
+      invoiceLines.push(invoiceLine);
+    }
+    //throw new Error('Something bad happened'); //TODO: BORRAR
+
     return invoiceLines;
   }
 }

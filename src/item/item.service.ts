@@ -35,12 +35,14 @@ export class ItemService {
   }
 
   async findAllByName(filter: string): Promise<Item[]> {
-    const query = filter || filter === '' ? { name: { $regex: filter, $options: 'i' } } : null;
-    return this.itemModel.find(query).exec();
+    const query = filter || filter === '' ? { $text: { $search: filter } } : null;
+    const result = this.itemModel.find(query).exec();
+    console.log('result: ', result);
+    return result;
   }
 
   async findOneByName(filter: string): Promise<ItemDocument> {
-    const query = filter || filter === '' ? { name: { $regex: filter, $options: 'i' } } : null;
+    const query = filter || filter === '' ? { altNames: filter } : null;
     return this.itemModel.findOne(query).exec();
   }
 

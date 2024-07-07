@@ -41,6 +41,9 @@ export class Item {
   @Prop()
   lastPriceUpdateDate: Date;
 
+  @Prop()
+  brand?: string;
+
   constructor(
     name,
     altNames: string[],
@@ -52,7 +55,8 @@ export class Item {
     updatedBy,
     price,
     prices,
-    lastPriceUpdateDate
+    lastPriceUpdateDate,
+    brand?
   ) {
     this.name = name;
     this.altNames = altNames;
@@ -65,6 +69,7 @@ export class Item {
     this.price = price;
     this.prices = prices;
     this.lastPriceUpdateDate = lastPriceUpdateDate;
+    if (brand) this.brand = brand;
   }
 }
 

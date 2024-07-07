@@ -223,7 +223,8 @@ export class ListService {
    * @returns DB response
    */
   public async addInvoiceFromFile(list_id: string, file: ListFile, user_id: Sch.Types.ObjectId): Promise<ListFile | boolean> {
-    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file.file, list_id, user_id);
+    // this.logger.debug('file', file);
+    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file, list_id, user_id);
     const invoiceFound = await this.invoiceService.getInvoiceByNumber(invoice.number);
     if (invoiceFound) {
       return false;

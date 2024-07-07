@@ -15,7 +15,8 @@ export enum UnitType {
 export enum InvoiceType {
   GENERIC = 'Generic Invoice',
   MERCADONA = 'Mercadona',
-  ALIMERKA = 'Alimerka'
+  ALIMERKA = 'Alimerka',
+  LIDL = 'Lidl'
 }
 
 @Schema({
