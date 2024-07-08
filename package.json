@@ -42,7 +42,8 @@
     "passport-local": "^1.0.0",
     "pdf2table": "^0.0.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tesseract.js": "^5.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
