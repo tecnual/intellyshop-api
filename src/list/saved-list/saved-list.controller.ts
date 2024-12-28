@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
-import { DefaultResponse } from 'src/shared/models/default-response';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
 import { AddListDto } from '../dto/add-list.dto';
 import { ListUser } from '../list.schema';
 import { SavedListDocument } from './saved-list.schema';

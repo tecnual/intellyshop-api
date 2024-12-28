@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         let dbUrl;
+        const password = configService.get<string>('database.password');
 
         if (configService.get<string>('database.schema') === 'mongodb+srv') {
           dbUrl =
@@ -37,7 +38,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             '?' +
             configService.get<string>('database.options');
         }
-        //console.info('Mongo conexion: ', dbUrl);
+        Logger.verbose('Mongo conexion: ' + dbUrl.replace(password, '*****'));
         return {
           uri: dbUrl,
           dbName: configService.get<string>('database.dbName')

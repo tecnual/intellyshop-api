@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-
   user;
 
   constructor(
@@ -29,7 +28,7 @@ export class AuthService {
    */
   async login(user: any) {
     return {
-      token: this.jwtService.sign({user}),
+      token: this.jwtService.sign({ user }),
       user
     };
   }

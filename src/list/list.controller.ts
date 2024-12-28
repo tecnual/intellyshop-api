@@ -1,14 +1,15 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Put, Req, Res, UseGuards, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
-import { AddListDto, ListFile } from './dto/add-list.dto';
+import { AddInvoiceRequestDto, AddListDto, ListFile } from './dto/add-list.dto';
 import { List, ListDocument, ListUser } from './list.schema';
 import { ListService } from './list.service';
 import { Request, Response } from 'express';
-import { DefaultResponse } from 'src/shared/models/default-response';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
 import { ModifyListRequest } from 'src/model/rest/modify-list.request';
-import { ErrorResponse } from 'src/shared/models/error-response.interface';
+import { ErrorResponse } from 'src/shared/models/error-response.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { User } from 'src/core/user/user.schema';
 
 @ApiTags('List')
 @UseGuards(JwtAuthGuard)
@@ -172,10 +173,15 @@ export class ListController {
    * Add files to list
    */
   @Post('/:listId/file')
-  public async addFileTolist(@Param('listId') listId: string, @Body() body: ListFile, @Req() req: Request, @Res() res: Response) {
-    this.logger.verbose(body.invoice_id, 'InvoiceId');
-    const user = req.user as ListUser;
-    const file = await this.listService.addInvoiceFromFile(listId, body, user._id);
+  public async addFileTolist(
+    @Param('listId') listId: string,
+    @Body() body: AddInvoiceRequestDto,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    this.logger.verbose(body.file.type, 'AddFileToList');
+    const user = req.user as User;
+    const file = await this.listService.addInvoiceFromFile(listId, body.file, user, body.firefly);
     if (!file) {
       return res
         .status(HttpStatus.CONFLICT)

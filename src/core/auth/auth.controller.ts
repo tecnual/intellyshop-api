@@ -3,8 +3,8 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Response } from 'express';
-import { ErrorResponse } from 'src/shared/models/error-response.interface';
-import { DefaultResponse } from 'src/shared/models/default-response';
+import { ErrorResponse } from 'src/shared/models/error-response.dto';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
 import { UserService } from '../user/user.service';
 import { ApiTags } from '@nestjs/swagger';
 

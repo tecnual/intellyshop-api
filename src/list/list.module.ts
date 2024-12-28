@@ -10,6 +10,7 @@ import { OpenFFService } from 'src/shared/openFF/openFF.Service';
 import { ItemSchemaProvider } from 'src/item/item.schema';
 import { HttpModule } from '@nestjs/axios';
 import { InvoiceSchemaProvider } from 'src/invoice/models/invoice.schema';
+import { FireflyIIIService } from 'src/routes/finance/infrastructure/firefly-iii/firefly-iii.service';
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([ListSchemaProvider, SavedListSchemaProvider, InvoiceSchemaProvider, ItemSchemaProvider]),
@@ -21,6 +22,6 @@ import { InvoiceSchemaProvider } from 'src/invoice/models/invoice.schema';
     })
   ],
   controllers: [ListController],
-  providers: [ListService, InvoiceService, ItemService, OpenFFService, Logger]
+  providers: [ListService, InvoiceService, ItemService, OpenFFService, Logger, FireflyIIIService]
 })
 export class ListModule {}

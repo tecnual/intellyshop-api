@@ -16,5 +16,8 @@ export default () => ({
     host: process.env.WS_MAIL_HOST,
     user: process.env.WS_MAIL_USER,
     pass: process.env.WS_MAIL_PASS
+  },
+  fireFly: {
+    token: process.env.WS_FF_TOKEN
   }
 });

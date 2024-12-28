@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { DefaultResponse } from './shared/models/default-response';
+import { DefaultResponse } from './shared/models/default-response.dto';
 
 @Controller()
 export class AppController {

@@ -2,7 +2,7 @@ import { Controller, Get, Res, UseGuards, Param, Body, Put, HttpStatus } from '@
 import { Invoice, InvoiceLine } from './models/invoice.schema';
 import { InvoiceService } from './invoice.service';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
-import { DefaultResponse } from 'src/shared/models/default-response';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiBearerAuth()

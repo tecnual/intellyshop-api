@@ -4,6 +4,7 @@ import { json, urlencoded } from 'express';
 import * as morgan from 'morgan';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { ErrorInterceptor } from './core/interceptors/error/error.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
     if (req.user) username = req.user.name;
     return username;
   });
+  app.useGlobalPipes(new ValidationPipe());
   app.use(
     morgan(
       ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :user-name',
@@ -43,9 +45,11 @@ async function bootstrap() {
     .addTag('Invoice', 'Invoice services')
     .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    ignoreGlobalPrefix: true
+  });
   SwaggerModule.setup('docs', app, document, options);
 
-  await app.listen(3000);
+  await app.listen(3030);
 }
 bootstrap();

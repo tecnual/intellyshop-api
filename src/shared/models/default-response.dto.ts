@@ -1,4 +1,4 @@
-import { ErrorResponse } from './error-response.interface';
+import { ErrorResponse } from './error-response.dto';
 
 export interface IDefaultResponse<T> {
   data: T;

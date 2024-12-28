@@ -37,7 +37,6 @@ export class ItemService {
   async findAllByName(filter: string): Promise<Item[]> {
     const query = filter || filter === '' ? { $text: { $search: filter } } : null;
     const result = this.itemModel.find(query).exec();
-    console.log('result: ', result);
     return result;
   }
 

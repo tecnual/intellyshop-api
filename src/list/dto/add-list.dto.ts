@@ -39,6 +39,10 @@ export interface ListFile {
   name: string;
 }
 
+export interface AddInvoiceRequestDto {
+  file: ListFile;
+  firefly: any;
+}
 export class ListItemDto {
   quantity: number;
   price: number;

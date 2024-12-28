@@ -4,9 +4,15 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": [
-      { "include": "mail/templates/*", "exclude": "", "watchAssets": true }
-    ],
-    "plugins": ["@nestjs/swagger"]
+    "assets": [{ "include": "mail/templates/*", "exclude": "", "watchAssets": true }],
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "classValidatorShim": true,
+          "introspectComments": true
+        }
+      }
+    ]
   }
 }

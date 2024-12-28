@@ -5,8 +5,7 @@ import { FinanceService } from './finance.service';
 @UseGuards(JwtAuthGuard)
 @Controller('finance')
 export class FinanceController {
-
-  constructor( private financeService: FinanceService) {}
+  constructor(private readonly financeService: FinanceService) {}
 
   @Get('stats')
   /**

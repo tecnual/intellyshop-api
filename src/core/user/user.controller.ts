@@ -1,12 +1,16 @@
-import { Controller, Get, Post, Query, Res, HttpStatus, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Query, Res, HttpStatus, Body, Logger, Put, UseGuards, Req } from '@nestjs/common';
 import { MailService } from 'src/providers/mail/mail.service';
-import { DefaultResponse } from 'src/shared/models/default-response';
-import { ErrorResponse } from 'src/shared/models/error-response.interface';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
+import { ErrorResponse } from 'src/shared/models/error-response.dto';
 import { User } from './user.schema';
 import { UserService } from './user.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AddUserDto } from './dto/add-user.dto';
-
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateUserRequest } from './dto/update-user.request.dto';
+import { ApiOkResponse, ApiResponse, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { UpdateUserResponse } from './dto/update-user.response.dto';
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
   private readonly logger = new Logger(UserController.name);
@@ -15,6 +19,7 @@ export class UserController {
     private readonly mailService: MailService
   ) {}
 
+  @ApiResponse({ status: 500, type: ErrorResponse })
   @Post()
   async addUser(@Res() res: Response, @Body() user: AddUserDto): Promise<any> {
     let response: DefaultResponse<User>;
@@ -54,7 +59,37 @@ export class UserController {
   }
 
   @Get()
-  usersList(@Query('filter') filter) {
+  usersList(@Query('filter') filter): Promise<User[]> {
     return this.userService.findAll(filter);
+  }
+
+  @ApiOkResponse({
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(DefaultResponse) },
+        {
+          properties: {
+            data: { $ref: getSchemaPath(User) },
+            errors: {
+              type: 'array',
+              items: { $ref: getSchemaPath(ErrorResponse) }
+            }
+          }
+        }
+      ]
+    }
+  })
+  @UseGuards(JwtAuthGuard)
+  @Put('/')
+  async updateUser(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() user: UpdateUserRequest
+  ): Promise<Response<UpdateUserResponse, Record<string, User>>> {
+    const reqUser = req.user as User;
+    const updatedUser = await this.userService.update(reqUser._id, user);
+    const status = HttpStatus.OK;
+    const response = new DefaultResponse<User>(updatedUser);
+    return res.status(status).send(response);
   }
 }

@@ -41,6 +41,9 @@ export class Invoice {
   @Prop()
   date: Date;
 
+  @Prop()
+  ffId?: string;
+
   @Prop({ type: Sch.Types.ObjectId, ref: 'List' })
   list_id;
 

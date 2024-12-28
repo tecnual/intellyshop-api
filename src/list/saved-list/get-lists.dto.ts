@@ -4,7 +4,7 @@ import { IsBoolean, IsEnum } from 'class-validator';
 enum ValidHiddenFields {
   images,
   cartItems,
-  listItems,
+  listItems
 }
 
 export class GetListsDto {

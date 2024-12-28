@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { OpenFFService } from 'src/shared/openFF/openFF.Service';
 import { ListUser } from 'src/list/list.schema';
 import { Price } from './price.schema';
-import { DefaultResponse } from 'src/shared/models/default-response';
+import { DefaultResponse } from 'src/shared/models/default-response.dto';
 import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Item')
 @UseGuards(JwtAuthGuard)

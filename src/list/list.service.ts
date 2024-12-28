@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Query, Schema as Sch, Types } from 'mongoose';
+import { Model, Query, Types } from 'mongoose';
 import { from, Observable } from 'rxjs';
 import { AddListDto, ListFile } from './dto/add-list.dto';
 import { List, ListDocument, ListItemDocument, ListUser } from './list.schema';
 import { SavedList } from './saved-list/saved-list.schema';
 import { InvoiceService } from 'src/invoice/invoice.service';
 import { Invoice } from 'src/invoice/models/invoice.schema';
+import { FireflyIIIService } from 'src/routes/finance/infrastructure/firefly-iii/firefly-iii.service';
+import { AddTransactionRequestMapper } from 'src/routes/finance/domain/mappers/add-transaction.request.mapper';
+import { User } from 'src/core/user/user.schema';
 
 @Injectable()
 export class ListService {
@@ -15,6 +18,7 @@ export class ListService {
     @InjectModel(SavedList.name)
     private readonly savedListModel: Model<SavedList>,
     private readonly invoiceService: InvoiceService,
+    private readonly fireflyIIIService: FireflyIIIService,
     private readonly logger: Logger
   ) {}
 
@@ -222,15 +226,16 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public async addInvoiceFromFile(list_id: string, file: ListFile, user_id: Sch.Types.ObjectId): Promise<ListFile | boolean> {
+  public async addInvoiceFromFile(list_id: string, file: ListFile, user: User, firefly: any): Promise<ListFile | boolean> {
     // this.logger.debug('file', file);
-    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file, list_id, user_id);
+    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file, list_id, user._id);
     const invoiceFound = await this.invoiceService.getInvoiceByNumber(invoice.number);
     if (invoiceFound) {
       return false;
     } else {
+      if (firefly) this.addInvoiceToFireFlyIII(invoice, firefly, user);
       const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
-      await this.addInvoiceToList(list_id, user_id, resultInvoice._id);
+      await this.addInvoiceToList(list_id, user._id, resultInvoice._id);
       file.invoice_id = resultInvoice._id;
       return file;
     }
@@ -242,7 +247,20 @@ export class ListService {
    * @param invoice
    * @returns DB response
    */
-  public addInvoiceToList(listId: string, user_id: Sch.Types.ObjectId, invoice_id: Types.ObjectId): Query<ListDocument, ListDocument> {
+  public addInvoiceToList(listId: string, user_id: Types.ObjectId, invoice_id: Types.ObjectId): Query<ListDocument, ListDocument> {
     return this.listModel.findByIdAndUpdate({ _id: listId, 'owner._id': user_id }, { $push: { invoices: invoice_id } }, { new: true });
+  }
+
+  public addInvoiceToFireFlyIII(invoice: Invoice, firefly: any, user: User): void {
+    const addTransactionRequestMapper = new AddTransactionRequestMapper();
+    const addTransactionRequest = addTransactionRequestMapper.invoiceToTransacction(invoice, firefly);
+    this.fireflyIIIService.addTransaccion(addTransactionRequest, user).subscribe({
+      next: (res) => {
+        invoice.ffId = res.data.data.id;
+      },
+      error: (err) => {
+        console.error('Error: ', err.data);
+      }
+    });
   }
 }

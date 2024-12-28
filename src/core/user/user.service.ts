@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Query, Types } from 'mongoose';
 import { AddUserDto } from './dto/add-user.dto';
 import { User, UserDocument } from './user.schema';
+import { UpdateUserRequest } from './dto/update-user.request.dto';
 
 @Injectable()
 export class UserService {
@@ -40,5 +41,9 @@ export class UserService {
    */
   public updateConfirm(query: any): Query<UserDocument, UserDocument> {
     return this.userModel.findOneAndUpdate(query, { confirmed: true }, { new: true });
+  }
+
+  public update(userId: Types.ObjectId, userDTO: UpdateUserRequest): Promise<UserDocument> {
+    return this.userModel.findByIdAndUpdate(new Types.ObjectId(userId.toString()), userDTO, { returnOriginal: false });
   }
 }
