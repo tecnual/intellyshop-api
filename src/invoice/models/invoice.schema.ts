@@ -91,6 +91,9 @@ export class InvoiceLine {
 
   @Prop({ type: Types.ObjectId, ref: 'Item', required: false })
   item_id?;
+
+  @Prop({ required: false })
+  increment?: number;
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);

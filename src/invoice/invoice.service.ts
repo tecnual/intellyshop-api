@@ -128,7 +128,6 @@ export class InvoiceService {
   }
 
   async getDataFromImage(base64Image): Promise<Invoice> {
-    // this.logger.debug(base64Image, 'base64Image');
     let data;
     try {
       const worker = await createWorker('spa');
@@ -161,11 +160,6 @@ export class InvoiceService {
   }
 
   async getInvoiceFromData(data, list_id, user_id): Promise<Invoice> {
-    // const store = data[0][0].split('  ');
-    // const storeName = store[0];
-    // const storeCIF = store[1];
-    // const storeAddress = data[1];
-    // this.logger.debug(data, 'Data');
     const invoiceType = this.getInvoiceType(data);
     switch (invoiceType) {
       case InvoiceType.MERCADONA: {
@@ -223,6 +217,7 @@ export class InvoiceService {
         await this.itemService.addPriceToItem(item._id.toString(), price);
         invoiceLine.item_id = item._id;
         invoiceLine.barcode = item.barcode;
+        invoiceLine.increment = item.price - invoiceLine.price;
       } else {
         const newItem = new Item(
           invoiceLine.description,

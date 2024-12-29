@@ -233,9 +233,9 @@ export class ListService {
     if (invoiceFound) {
       return false;
     } else {
-      if (firefly) this.addInvoiceToFireFlyIII(invoice, firefly, user);
       const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
       await this.addInvoiceToList(list_id, user._id, resultInvoice._id);
+      if (firefly && resultInvoice) this.addInvoiceToFireFlyIII(invoice, firefly, user);
       file.invoice_id = resultInvoice._id;
       return file;
     }
