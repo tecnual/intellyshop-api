@@ -201,7 +201,7 @@ export class InvoiceService {
           _id: new Types.ObjectId(),
           quantity: line[2].replace(',', '.').split(' ')[0] as number,
           description: line[1],
-          price: priceArray[0].replace(',', '.'),
+          price: priceArray[0].replace(',', '.') as number,
           unitType: priceArray[1].split('/')[1]
         };
 
@@ -425,7 +425,6 @@ export class InvoiceService {
           } else {
             if (line.length === 2) {
               price = parseFloat(line[line.length - 1].replace(',', '.'));
-              //lines.push([line[0], 1, price]);
               descriptionLine = line[0];
               quantity = 1;
             } else {
@@ -446,7 +445,6 @@ export class InvoiceService {
             description = descriptionField[0];
             brand = '';
           }
-          //const description = descriptionField.length > 1 ? descriptionField[1] : descriptionField[0];
           price = price + discount;
           lines.push({ description, quantity, price, unitType, discount, brand });
         }
@@ -466,7 +464,7 @@ export class InvoiceService {
         _id: new Types.ObjectId(),
         quantity: line.quantity,
         description: line.description,
-        price: line.price,
+        price: line.price as number,
         unitType: line.unitType
       };
 
@@ -502,7 +500,6 @@ export class InvoiceService {
       }
       invoiceLines.push(invoiceLine);
     }
-    //throw new Error('Something bad happened'); //TODO: BORRAR
 
     return invoiceLines;
   }

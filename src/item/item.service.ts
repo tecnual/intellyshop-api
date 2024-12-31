@@ -90,7 +90,7 @@ export class ItemService {
     return this.itemModel.findByIdAndUpdate(itemId, { $set: { prices, lastPriceUpdateDate: new Date() } }, { new: true }).exec();
   }
 
-  addPricesToItemPrices(prices: Price[], itemPrices): Price[] {
+  public addPricesToItemPrices(prices: Price[], itemPrices): Price[] {
     if (!itemPrices) itemPrices = [];
     prices.forEach((elem) => {
       const priceFound = itemPrices.find((p) => p.price === elem.price && p.date === elem.date);

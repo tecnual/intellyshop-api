@@ -31,15 +31,17 @@ export class Price {
   @Prop({ type: Types.ObjectId, ref: 'Invoice', required: false })
   invoice_id?;
 
-  constructor(price: number, user: Types.ObjectId, source, currency, date, openFoodFactsPrice?: any, invoiceId?) {
-    this.price = price;
+  constructor(price: number, user: Types.ObjectId, source, currency, date: Date, openFoodFactsPrice?: any, invoiceId?) {
+    this.price = Number(price);
     this.createdBy = user;
     this.source = source;
     this.currency = currency;
-    this.date = date;
+    console.log('date: ', date);
+    this.date = new Date(date);
+    console.log('this.date: ', this.date);
     if (source === Source.OPEN_FOOD_FACTS && openFoodFactsPrice) {
       this.openFoodFactsPrice = openFoodFactsPrice;
-      this.date = openFoodFactsPrice.date;
+      this.date = new Date(openFoodFactsPrice.date);
     }
     if (invoiceId) this.invoice_id = invoiceId;
     this.createdOn = new Date();
