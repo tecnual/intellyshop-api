@@ -16,7 +16,8 @@ export enum InvoiceType {
   GENERIC = 'Generic Invoice',
   MERCADONA = 'Mercadona',
   ALIMERKA = 'Alimerka',
-  LIDL = 'Lidl'
+  LIDL = 'Lidl',
+  CARREFOUR = 'Carrefour'
 }
 
 @Schema({
@@ -53,7 +54,10 @@ export class Invoice {
   @Prop()
   invoiceType: InvoiceType;
 
-  constructor(number, lines, currency, total, date, list_id, user_id, invoiceId?, invoiceType?: InvoiceType) {
+  @Prop()
+  notes: string;
+
+  constructor(number, lines, currency, total, date, list_id, user_id, invoiceId?, invoiceType?: InvoiceType, notes?: string) {
     this._id = invoiceId ? invoiceId : new Types.ObjectId();
     this.number = number;
     this.lines = lines;
@@ -63,6 +67,7 @@ export class Invoice {
     this.list_id = list_id;
     this.user_id = user_id;
     this.invoiceType = invoiceType ? invoiceType : InvoiceType.GENERIC;
+    this.notes = notes!;
   }
 }
 

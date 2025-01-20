@@ -226,18 +226,19 @@ export class ListService {
    * @param files
    * @returns DB response
    */
-  public async addInvoiceFromFile(list_id: string, file: ListFile, user: User, firefly: any): Promise<ListFile | boolean> {
+  public async addInvoiceFromFile(list_id: string, listFile: ListFile, user: User, firefly: any): Promise<ListFile | boolean> {
     // this.logger.debug('file', file);
-    const invoice: Invoice = await this.invoiceService.invoiceFromFile(file, list_id, user._id);
+    const invoice: Invoice = await this.invoiceService.invoiceFromFile(listFile, list_id, user._id);
     const invoiceFound = await this.invoiceService.getInvoiceByNumber(invoice.number);
     if (invoiceFound) {
       return false;
     } else {
+      if (!invoice) return null;
       const resultInvoice = await this.invoiceService.addNewInvoice(invoice);
       await this.addInvoiceToList(list_id, user._id, resultInvoice._id);
       if (firefly && resultInvoice) this.addInvoiceToFireFlyIII(invoice, firefly, user);
-      file.invoice_id = resultInvoice._id;
-      return file;
+      listFile.invoice_id = resultInvoice._id;
+      return listFile;
     }
   }
 
@@ -259,7 +260,7 @@ export class ListService {
         invoice.ffId = res.data.data.id;
       },
       error: (err) => {
-        console.error('Error: ', err.data);
+        this.logger.error(err);
       }
     });
   }

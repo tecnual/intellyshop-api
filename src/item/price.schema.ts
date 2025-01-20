@@ -36,9 +36,7 @@ export class Price {
     this.createdBy = user;
     this.source = source;
     this.currency = currency;
-    console.log('date: ', date);
     this.date = new Date(date);
-    console.log('this.date: ', this.date);
     if (source === Source.OPEN_FOOD_FACTS && openFoodFactsPrice) {
       this.openFoodFactsPrice = openFoodFactsPrice;
       this.date = new Date(openFoodFactsPrice.date);

@@ -146,6 +146,7 @@ export class InvoiceService {
   }
 
   getInvoiceType(data: any): InvoiceType {
+    this.logger.verbose(data, 'Ticket data');
     if (data[0][0] === 'ALIMERKA S.A.U.') {
       return InvoiceType.ALIMERKA;
     }
@@ -155,6 +156,9 @@ export class InvoiceService {
     }
     if (data[1] === 'LIDL SUPERMERCADOS S.A.U') {
       return InvoiceType.LIDL;
+    }
+    if (data[0][0] === '***Centros Comerciales Carrefour S.A***') {
+      return InvoiceType.CARREFOUR;
     }
     return InvoiceType.GENERIC;
   }
@@ -171,10 +175,84 @@ export class InvoiceService {
       case InvoiceType.LIDL: {
         return await this.parseDataFromLidl(data, list_id, user_id);
       }
+      case InvoiceType.CARREFOUR: {
+        //data[10] = ['CERVEZA CRUZCAMPO P18'];
+        //data[11] = ['2 x (  2,09)    4,18'];
+        return await this.parseDataFromCarrefour(data, list_id, user_id);
+      }
       default: {
         return null;
       }
     }
+  }
+
+  base64ToArrayBuffer(base64File) {
+    const binaryString = atob(base64File);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  public async updateInvoiceLine(invoiceLine: InvoiceLineDTO, itemId: Types.ObjectId) {
+    const invoiceLineId = new Types.ObjectId(invoiceLine._id);
+    const lineItemId = new Types.ObjectId(itemId);
+    return this.invoiceModel
+      .findOneAndUpdate(
+        { 'lines._id': invoiceLineId },
+        {
+          $set: {
+            'lines.$.item_id': lineItemId,
+            'lines.$.barcode': invoiceLine.barcode,
+            'lines.$.quantity': invoiceLine.quantity,
+            'lines.$.price': invoiceLine.price,
+            'lines.$.unitType': invoiceLine.unitType
+          }
+        },
+        {
+          upsert: false,
+          new: true
+        }
+      )
+      .populate({ path: 'lines.item_id', model: 'Item' })
+      .exec();
+  }
+
+  async mergeArrays(source: any[], arrayToMerge: any[]) {
+    const mergedArray: any[] = [];
+    source.map((elem) => {
+      const result = arrayToMerge.some((i) => {
+        return i === elem;
+      });
+      if (!result) mergedArray.push(elem);
+    });
+    return [...arrayToMerge, ...mergedArray];
+  }
+
+  async parseDataFromMercadona(data, list_id, user_id): Promise<Invoice> {
+    const ticketDateArray = data[4][0].split(' ');
+    const ticketDate = ticketDateArray[0].split('/');
+    const ticketHour = ticketDateArray[1].split(':');
+    const invoiceNumber = data[5][0].split(': ')[1];
+
+    const date = new Date(ticketDate[2], ticketDate[1] - 1, ticketDate[0], ticketHour[0], ticketHour[1]);
+    let total = 0;
+    let totalLineNumber = 0;
+    let count = 0;
+
+    data.map((elem) => {
+      count++;
+      if (elem[0] === 'TOTAL (€)') {
+        total = elem[1].replace(',', '.') as number;
+        totalLineNumber = count;
+      }
+    });
+
+    const invoiceId = new Types.ObjectId();
+    const lines = await this.getInvoiceLinesFromMercadona(data, totalLineNumber, date, invoiceId);
+    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.MERCADONA);
+    return invoice;
   }
 
   async getInvoiceLinesFromMercadona(data, totalLineNumber, date: Date, invoiceId) {
@@ -238,67 +316,6 @@ export class InvoiceService {
       invoiceLines.push(invoiceLine);
     }
     return invoiceLines;
-  }
-
-  base64ToArrayBuffer(base64File) {
-    const binaryString = atob(base64File);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-  }
-
-  public async updateInvoiceLine(invoiceLine: InvoiceLineDTO, itemId: Types.ObjectId) {
-    const invoiceLineId = new Types.ObjectId(invoiceLine._id);
-    const lineItemId = new Types.ObjectId(itemId);
-    return this.invoiceModel
-      .findOneAndUpdate(
-        { 'lines._id': invoiceLineId },
-        { $set: { 'lines.$.item_id': lineItemId, 'lines.$.barcode': invoiceLine.barcode } },
-        {
-          upsert: false,
-          new: true
-        }
-      )
-      .populate({ path: 'lines.item_id', model: 'Item' })
-      .exec();
-  }
-
-  async mergeArrays(source: any[], arrayToMerge: any[]) {
-    const mergedArray: any[] = [];
-    source.map((elem) => {
-      const result = arrayToMerge.some((i) => {
-        return i === elem;
-      });
-      if (!result) mergedArray.push(elem);
-    });
-    return [...arrayToMerge, ...mergedArray];
-  }
-
-  async parseDataFromMercadona(data, list_id, user_id): Promise<Invoice> {
-    const ticketDateArray = data[4][0].split(' ');
-    const ticketDate = ticketDateArray[0].split('/');
-    const ticketHour = ticketDateArray[1].split(':');
-    const invoiceNumber = data[5][0].split(': ')[1];
-
-    const date = new Date(ticketDate[2], ticketDate[1] - 1, ticketDate[0], ticketHour[0], ticketHour[1]);
-    let total = 0;
-    let totalLineNumber = 0;
-    let count = 0;
-
-    data.map((elem) => {
-      count++;
-      if (elem[0] === 'TOTAL (€)') {
-        total = elem[1].replace(',', '.') as number;
-        totalLineNumber = count;
-      }
-    });
-
-    const invoiceId = new Types.ObjectId();
-    const lines = await this.getInvoiceLinesFromMercadona(data, totalLineNumber, date, invoiceId);
-    const invoice: Invoice = new Invoice(invoiceNumber, lines, 'EUR', total, date, list_id, user_id, invoiceId, InvoiceType.MERCADONA);
-    return invoice;
   }
 
   async parseDataFromAlimerka(data, list_id, user_id): Promise<Invoice> {
@@ -502,5 +519,166 @@ export class InvoiceService {
     }
 
     return invoiceLines;
+  }
+
+  async parseDataFromCarrefour(data, list_id, user_id): Promise<Invoice> {
+    const invoiceNumber = this.getInvoiceNumberFromTicketCarrefour(data);
+    const date = this.getDateFromTicketCarrefour(data);
+    const totalData = this.getTotalFromTicketCarrefour(data);
+    const total = totalData[0];
+    const totalLineNumber = totalData[1];
+    const firstLineNumber = totalData[2];
+    const invoiceId = new Types.ObjectId();
+    const lines = await this.getInvoiceLinesFromCarrefour(data, totalLineNumber, firstLineNumber, date, invoiceId);
+    let linesPrice = 0;
+    let notes;
+    for (const line of lines) {
+      linesPrice += line.quantity * line.price;
+      if (linesPrice !== total) notes = `El precio total (${total}) es diferente al precio de las líneas (${linesPrice})`;
+    }
+    const invoice: Invoice = new Invoice(
+      invoiceNumber,
+      lines,
+      'EUR',
+      total,
+      date,
+      list_id,
+      user_id,
+      invoiceId,
+      InvoiceType.CARREFOUR,
+      notes
+    );
+
+    return invoice;
+  }
+
+  getDateFromTicketCarrefour(data): Date {
+    const lastLineNumber = data.length;
+    const dateArray = data[lastLineNumber - 4][0].split(' ')[0].split('/');
+    const timeArray = data[lastLineNumber - 4][0].split(' ')[1].split(':');
+    return new Date(Number(dateArray[2]) + 2000, dateArray[1] - 1, dateArray[0], timeArray[0], timeArray[1], timeArray[2]);
+  }
+
+  getInvoiceNumberFromTicketCarrefour(data): string {
+    const lastLineNumber = data.length;
+    const nrfLine = data[lastLineNumber - 5][0];
+
+    return nrfLine.split(' ')[2];
+  }
+
+  getTotalFromTicketCarrefour(data): number[] {
+    let totalLine: string;
+    let totalLineNumber;
+    let firstLineNumber;
+
+    for (const elem of data) {
+      if (elem[0].includes('TOTAL A PAGAR')) {
+        totalLine = elem[0];
+        totalLineNumber = data.indexOf(elem);
+      }
+      if (elem[0].includes('**************************************')) {
+        firstLineNumber = data.indexOf(elem);
+      }
+    }
+
+    const totalLineElems = totalLine.split('  ');
+    const totalString = totalLineElems[totalLineElems.length - 1];
+    const total = Number(totalString.replace(',', '.'));
+    return [total, totalLineNumber, firstLineNumber + 1];
+  }
+
+  async getInvoiceLinesFromCarrefour(data, totalLineNumber, firstLineNumber, date: Date, invoiceId) {
+    const user = this.request.user as UserDocument;
+    const invoiceLines: InvoiceLine[] = [];
+
+    for (let i = firstLineNumber; i < totalLineNumber - 1; i++) {
+      const line = data[i][0];
+      const lineArray = line.split('  ');
+      const firstElement = lineArray[0];
+      let itemName;
+
+      let precio = (lineArray[lineArray.length - 1].replace(',', '.') as number) * 1;
+      let invoiceLine: InvoiceLine;
+      if (!precio || precio <= 0) continue;
+      const lineData = this.getDataFromCarrefourTicket(line);
+      let quantity = 1;
+      if (lineData) {
+        precio = lineData.precio;
+        quantity = lineData.cantidad;
+        itemName = data[i - 1][0].split('  ')[0];
+        invoiceLine = {
+          _id: new Types.ObjectId(),
+          quantity,
+          description: itemName,
+          price: precio,
+          unitType: UnitType.UNIT
+        };
+      } else {
+        itemName = firstElement;
+        invoiceLine = {
+          _id: new Types.ObjectId(),
+          quantity: 1,
+          description: itemName,
+          price: precio,
+          unitType: UnitType.UNIT
+        };
+      }
+      const item = await this.itemService.findOneByName(itemName);
+      if (item?._id) {
+        invoiceLine.item_id = new Types.ObjectId(item._id);
+      }
+      const price = new Price(invoiceLine.price, user._id, Source.INVOICE, 'EUR', date, null, invoiceId);
+      if (item) {
+        const itemId = item._id.toString();
+        await this.itemService.patchItemPrice(itemId, invoiceLine.price);
+        if (item.altNames.indexOf(invoiceLine.description) > -1) await this.itemService.addItemAltName(itemId, invoiceLine.description);
+        await this.itemService.addPriceToItem(itemId, price);
+        invoiceLine.item_id = item._id;
+        invoiceLine.barcode = item.barcode;
+        invoiceLine.increment = item.price - invoiceLine.price;
+      } else {
+        const newItem = new Item(
+          invoiceLine.description,
+          [invoiceLine.description],
+          null,
+          null,
+          null,
+          true,
+          user._id,
+          user._id,
+          invoiceLine.price,
+          [price],
+          new Date()
+        );
+        const resultItem = await this.itemService.setItem(newItem as ItemDocument, user._id);
+        invoiceLine.item_id = resultItem._id;
+      }
+      invoiceLines.push(invoiceLine);
+    }
+    return invoiceLines;
+  }
+
+  getDataFromCarrefourTicket(linea) {
+    // Eliminamos espacios innecesarios
+    const lineaLimpia = linea.trim().replace(/\s+/g, ' ');
+    console.log('lineaLimpia: ', lineaLimpia);
+    // Expresión regular para extraer cantidad, precio y total
+    //const regex = /^(\d+)\s+x\s+\((\d+,\d{1,2})\)\s+(\d+,\d{1,2})$/;
+    const regex = /^(\d+)\s+x\s+\(\s*(\d+,\d{1,2})\s*\)\s+(\d+,\d{1,2})$/;
+    const match = lineaLimpia.match(regex);
+
+    console.log('match: ', match);
+    if (!match) return null;
+
+    // Extraemos los datos
+    const cantidad = parseInt(match[1], 10);
+    const precio = parseFloat(match[2].replace(',', '.'));
+    const total = parseFloat(match[3].replace(',', '.'));
+
+    return {
+      cantidad,
+      precio: Number(precio.toFixed(2)),
+      total: Number(total.toFixed(2))
+    };
   }
 }
